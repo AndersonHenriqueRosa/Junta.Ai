@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:juntaai/screens/planning_screen.dart';
 import 'package:juntaai/screens/profile_screen.dart';
-import 'package:juntaai/screens/transactions_screen.dart';
+import 'package:juntaai/screens/transactions/transactions_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
