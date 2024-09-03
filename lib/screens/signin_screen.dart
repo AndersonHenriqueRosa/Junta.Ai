@@ -172,14 +172,7 @@ class _SignInScreenState extends State<SignInScreen> {
                       ),
                       const SizedBox(height: 40.0),
                       // Removido a linha de divisão
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Logo(Logos.facebook_f),
-                          const SizedBox(width: 10.0),
-                          Logo(Logos.google),
-                        ],
-                      ),
+                     
                       const SizedBox(height: 20.0),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
