@@ -13,7 +13,7 @@ class _IncomeScreenState extends State<IncomeScreen> {
   final _formSignInKey = GlobalKey<FormState>();
   DateTime? _selectedDate;
   String? _selectedCategory;
-  String _status = 'Não Pago'; // Novo campo para o status
+  String? _selectedStatus = 'Realizado'; // Inicializa como 'Realizado'
   final List<String> _categories = [
     'Alimentação',
     'Transporte',
@@ -22,6 +22,9 @@ class _IncomeScreenState extends State<IncomeScreen> {
     'Lazer',
     'Outros',
   ];
+
+  final List<String> _statusOptions = ['Realizado', 'previsto']; // Lista de status
+
   final TextEditingController _valueController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
 
@@ -79,19 +82,13 @@ class _IncomeScreenState extends State<IncomeScreen> {
     );
   }
 
-  void _toggleStatus() {
-    setState(() {
-      _status = _status == 'Previsto' ? 'Realizado' : 'Previsto';
-    });
-  }
-
   void _saveData() {
     if (_formSignInKey.currentState?.validate() ?? false) {
       final receita = Receita(
         data: _selectedDate,
         categoria: _selectedCategory,
         valor: double.tryParse(_valueController.text.replaceAll('R\$', '').replaceAll('.', '').replaceAll(',', '.')),
-        status: _status,
+        status: _selectedStatus,
         descricao: _descriptionController.text,
       );
 
@@ -105,7 +102,7 @@ class _IncomeScreenState extends State<IncomeScreen> {
       _descriptionController.clear();
       _selectedDate = null;
       _selectedCategory = null;
-      _status = 'Previsto';
+      _selectedStatus = 'Realizado';
     }
   }
 
@@ -323,45 +320,55 @@ class _IncomeScreenState extends State<IncomeScreen> {
                           ),
                         ),
                         const SizedBox(height: 20.0),
-                        AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 300),
-                          child: _status == 'Previsto'
-                              ? ElevatedButton(
-                                  key: ValueKey('RealizadoButton'),
-                                  onPressed: _toggleStatus,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.green,
-                                  ),
-                                  child: const Text('Realizado'),
-                                )
-                              : ElevatedButton(
-                                  key: ValueKey('PrevistoButton'),
-                                  onPressed: _toggleStatus,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.red,
-                                  ),
-                                  child: const Text('Previsto'),
-                                ),
+                        DropdownButtonFormField<String>(
+                          value: _selectedStatus,
+                          onChanged: (String? newValue) {
+                            setState(() {
+                              _selectedStatus = newValue;
+                            });
+                          },
+                          items: _statusOptions.map((String status) {
+                            return DropdownMenuItem<String>(
+                              value: status,
+                              child: Text(status),
+                            );
+                          }).toList(),
+                          decoration: InputDecoration(
+                            labelText: 'Selecione o Status',
+                            border: OutlineInputBorder(
+                              borderSide: const BorderSide(
+                                color: Colors.black12,
+                              ),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: const BorderSide(
+                                color: Colors.black12,
+                              ),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
                         ),
-                        const SizedBox(height: 50.0),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            SizedBox(
-                              width: 250,
-                              child: ElevatedButton(
-                                onPressed: _saveData,
-                                child: const Text('Salvar'),
-                                style: ElevatedButton.styleFrom(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10.0),
-                                  ),
-                                ),
+                        const SizedBox(height: 30.0),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: _saveData,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
                               ),
                             ),
-                          ],
+                            child: const Padding(
+                              padding: EdgeInsets.all(20.0),
+                              child: Text(
+                                'Salvar',
+                                style: TextStyle(fontSize: 16.0),
+                              ),
+                            ),
+                          ),
                         ),
-                        const SizedBox(height: 20.0),
                       ],
                     ),
                   ),
@@ -374,6 +381,7 @@ class _IncomeScreenState extends State<IncomeScreen> {
     );
   }
 }
+
 
 class CurrencyTextInputFormatter extends TextInputFormatter {
   @override
