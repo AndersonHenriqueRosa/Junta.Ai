@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:juntaai/screens/forget_passsword_screen.dart';
-import 'package:juntaai/screens/home_screen.dart';
+import 'package:juntaai/screens/home/home_screen.dart';
 import 'package:juntaai/screens/signup_screen.dart';
 import 'package:juntaai/widgets/custom_scaffold.dart';
 

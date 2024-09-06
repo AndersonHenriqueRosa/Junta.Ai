@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:juntaai/screens/home_screen.dart';
+import 'package:juntaai/screens/home/home_screen.dart';
 import 'package:juntaai/screens/signin_screen.dart';
 import 'package:juntaai/widgets/custom_scaffold.dart';
 
