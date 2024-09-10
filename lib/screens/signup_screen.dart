@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:juntaai/screens/home/home_screen.dart';
 import 'package:juntaai/screens/signin_screen.dart';
 import 'package:juntaai/widgets/custom_scaffold.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:juntaai/service/firebase_service.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -12,6 +14,12 @@ class SignUpScreen extends StatefulWidget {
 
 class _SignUpScreenState extends State<SignUpScreen> {
   final _formSignInKey = GlobalKey<FormState>();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
   bool rememberPassword = true;
 
   @override
@@ -53,7 +61,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       const SizedBox(height: 20.0),
+                      // Campo para Nome
                       TextFormField(
+                        controller: _nameController,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Entre com Nome';
@@ -81,7 +91,39 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ),
                       ),
                       const SizedBox(height: 20.0),
+                      // Campo para Telefone
                       TextFormField(
+                        controller: _phoneController,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Entre com Telefone';
+                          }
+                          return null;
+                        },
+                        decoration: InputDecoration(
+                          labelText: 'Telefone',
+                          hintText: '(99) 99999-9999',
+                          hintStyle: const TextStyle(
+                            color: Colors.black26,
+                          ),
+                          border: OutlineInputBorder(
+                            borderSide: const BorderSide(
+                              color: Colors.black12,
+                            ),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: const BorderSide(
+                              color: Colors.black12,
+                            ),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20.0),
+                      // Campo para Email
+                      TextFormField(
+                        controller: _emailController,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Entre com Email';
@@ -109,35 +151,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ),
                       ),
                       const SizedBox(height: 20.0),
+                      // Campo para Senha
                       TextFormField(
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Entre com Número Celular';
-                          }
-                          return null;
-                        },
-                        decoration: InputDecoration(
-                          labelText: 'Número Celular',
-                          hintText: '(00) 00000-0000',
-                          hintStyle: const TextStyle(
-                            color: Colors.black26,
-                          ),
-                          border: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                              color: Colors.black12,
-                            ),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                              color: Colors.black12,
-                            ),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 20.0),
-                      TextFormField(
+                        controller: _passwordController,
                         obscureText: true,
                         obscuringCharacter: '*',
                         validator: (value) {
@@ -167,18 +183,22 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ),
                       ),
                       const SizedBox(height: 20.0),
+                      // Campo para Confirmar Senha
                       TextFormField(
+                        controller: _confirmPasswordController,
                         obscureText: true,
                         obscuringCharacter: '*',
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Confirma Senha';
+                            return 'Confirme a Senha';
+                          } else if (value != _passwordController.text) {
+                            return 'As senhas não coincidem';
                           }
                           return null;
                         },
                         decoration: InputDecoration(
                           labelText: 'Confirma Senha',
-                          hintText: 'Confirma Senha',
+                          hintText: 'Confirme a Senha',
                           hintStyle: const TextStyle(
                             color: Colors.black26,
                           ),
@@ -197,22 +217,53 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ),
                       ),
                       const SizedBox(height: 50.0),
-                      // Ajustando a largura do botão
+                      // Botão de Criar Conta
                       SizedBox(
-                        width: 250, // Defina a largura desejada aqui
+                        width: 250,
                         child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (e) => const HomeScreen(),
-                                ),
-                              );
+                          onPressed: () async {
+                            if (_formSignInKey.currentState?.validate() ??
+                                false) {
+                              try {
+                                // Criar a conta
+                                FirebaseService firebaseService =
+                                    FirebaseService();
+                                User? user = await firebaseService.signUp(
+                                  _emailController.text,
+                                  _passwordController.text,
+                                  _nameController.text,
+                                  _phoneController.text,
+                                );
+
+                                if (user != null) {
+                                  User? loggedInUser =
+                                      await firebaseService.signIn(
+                                    _emailController.text,
+                                    _passwordController.text,
+                                  );
+
+                                  if (loggedInUser != null) {
+                                    Navigator.pushReplacement(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const HomeScreen(),
+                                      ),
+                                    );
+                                  }
+                                }
+                              } catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Erro: $e')),
+                                );
+                              }
+                            }
                           },
                           child: const Text('Criar Conta'),
                         ),
                       ),
                       const SizedBox(height: 20.0),
+                      // Link para login
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:icons_plus/icons_plus.dart';
 import 'package:juntaai/screens/forget_passsword_screen.dart';
 import 'package:juntaai/screens/home/home_screen.dart';
 import 'package:juntaai/screens/signup_screen.dart';
 import 'package:juntaai/widgets/custom_scaffold.dart';
+import 'package:juntaai/service/firebase_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -14,7 +15,11 @@ class SignInScreen extends StatefulWidget {
 
 class _SignInScreenState extends State<SignInScreen> {
   final _formSignInKey = GlobalKey<FormState>();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   bool rememberPassword = true;
+  final FirebaseService _firebaseService = FirebaseService();
+  String? _errorMessage;
 
   @override
   Widget build(BuildContext context) {
@@ -56,6 +61,7 @@ class _SignInScreenState extends State<SignInScreen> {
                     children: [
                       const SizedBox(height: 20.0),
                       TextFormField(
+                        controller: _emailController,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Entre com Email';
@@ -84,6 +90,7 @@ class _SignInScreenState extends State<SignInScreen> {
                       ),
                       const SizedBox(height: 20.0),
                       TextFormField(
+                        controller: _passwordController,
                         obscureText: true,
                         obscuringCharacter: '*',
                         validator: (value) {
@@ -113,6 +120,17 @@ class _SignInScreenState extends State<SignInScreen> {
                         ),
                       ),
                       const SizedBox(height: 20.0),
+                      if (_errorMessage != null)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          child: Text(
+                            _errorMessage!,
+                            style: TextStyle(
+                              color: Colors.red,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -155,24 +173,35 @@ class _SignInScreenState extends State<SignInScreen> {
                         ],
                       ),
                       const SizedBox(height: 50.0),
-                      // Ajustando a largura do botão
                       SizedBox(
-                        width: 250, // Defina a largura desejada aqui
+                        width: 250,
                         child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (e) => const HomeScreen(),
-                                ),
-                              );
+                          onPressed: () async {
+                            if (_formSignInKey.currentState!.validate()) {
+                              try {
+                                User? user = await _firebaseService.signIn(
+                                  _emailController.text,
+                                  _passwordController.text,
+                                );
+                                if (user != null) {
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (e) => const HomeScreen(),
+                                    ),
+                                  );
+                                }
+                              } catch (e) {
+                                setState(() {
+                                  _errorMessage = e.toString();
+                                });
+                              }
+                            }
                           },
                           child: const Text('Entrar'),
                         ),
                       ),
                       const SizedBox(height: 40.0),
-                      // Removido a linha de divisão
-                     
                       const SizedBox(height: 20.0),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
