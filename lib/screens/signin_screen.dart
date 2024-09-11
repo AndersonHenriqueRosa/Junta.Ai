@@ -5,6 +5,7 @@ import 'package:juntaai/screens/signup_screen.dart';
 import 'package:juntaai/widgets/custom_scaffold.dart';
 import 'package:juntaai/service/firebase_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -163,7 +164,7 @@ class _SignInScreenState extends State<SignInScreen> {
                               );
                             },
                             child: Text(
-                              'Forget password?',
+                              'Esqueci minha senha',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Colors.black,
@@ -202,6 +203,33 @@ class _SignInScreenState extends State<SignInScreen> {
                         ),
                       ),
                       const SizedBox(height: 40.0),
+                      const SizedBox(height: 20.0),
+                      ElevatedButton.icon(
+                        onPressed: () async {
+                          try {
+                            User? user =
+                                await _firebaseService.signInWithGoogle();
+                            if (user != null) {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (e) => const HomeScreen(),
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            setState(() {
+                              _errorMessage = e.toString();
+                              print(_errorMessage);
+                            });
+                          }
+                        },
+                        icon: Icon(Icons.login),
+                        label: Text('Login com Google'),
+                        // style: ElevatedButton.styleFrom(
+                        //   backgroundColor: Colors.redAccent, // Cor do botão
+                        // ),
+                      ),
                       const SizedBox(height: 20.0),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,

@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter/material.dart';
 
 class FirebaseService {
@@ -14,8 +15,6 @@ class FirebaseService {
       );
       return userCredential.user;
     } on FirebaseAuthException catch (e) {
-      print(e.code);
-      print(e.message);
       if (e.code == 'invalid-email' || e.code == 'invalid-credential') {
         throw 'Usuário ou senha incorretos. Tente novamente';
       } else if (e.code == 'too-many-requests') {
@@ -109,6 +108,36 @@ class FirebaseService {
   //     return null;
   //   }
   // }
+
+  Future<User?> signInWithGoogle() async {
+    try {
+      final GoogleSignIn googleSignIn = GoogleSignIn(
+        scopes: ['email'],
+        clientId:
+            '412508417412-nvccerm29qpcqbkp7tmspn0noh0us0ll.apps.googleusercontent.com',
+      );
+
+      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+      if (googleUser == null) {
+        // Usuário cancelou o login
+        return null;
+      }
+
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      final UserCredential userCredential =
+          await FirebaseAuth.instance.signInWithCredential(credential);
+      return userCredential.user;
+    } catch (e) {
+      throw 'Erro ao fazer login com Google: $e';
+    }
+  }
 
   User? getCurrentUser() {
     return _auth.currentUser;

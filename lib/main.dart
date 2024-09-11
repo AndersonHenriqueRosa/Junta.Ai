@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:juntaai/firebase_options.dart';
+import 'package:juntaai/screens/home/home_screen.dart';
 import 'package:juntaai/screens/welcome_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 
@@ -19,7 +21,25 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Bem-Vindo ao Junta.Ai',
-      home: const WelcomeScreen(),
+      home: RouterScreen(),
     );
+  }
+}
+
+class RouterScreen extends StatelessWidget {
+  const RouterScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<User?>(
+        stream: FirebaseAuth.instance.userChanges(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            print(snapshot.hasData);
+            return const HomeScreen();
+          } else {
+            return const WelcomeScreen();
+          }
+        });
   }
 }

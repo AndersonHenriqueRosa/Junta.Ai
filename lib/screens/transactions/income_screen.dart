@@ -23,7 +23,10 @@ class _IncomeScreenState extends State<IncomeScreen> {
     'Outros',
   ];
 
-  final List<String> _statusOptions = ['Realizado', 'previsto']; // Lista de status
+  final List<String> _statusOptions = [
+    'Realizado',
+    'Previsto'
+  ]; // Lista de status
 
   final TextEditingController _valueController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
@@ -54,7 +57,8 @@ class _IncomeScreenState extends State<IncomeScreen> {
           title: const Text('Adicionar Categoria'),
           content: TextField(
             controller: _categoryController,
-            decoration: const InputDecoration(hintText: 'Nome da nova categoria'),
+            decoration:
+                const InputDecoration(hintText: 'Nome da nova categoria'),
           ),
           actions: <Widget>[
             TextButton(
@@ -87,7 +91,10 @@ class _IncomeScreenState extends State<IncomeScreen> {
       final receita = Receita(
         data: _selectedDate,
         categoria: _selectedCategory,
-        valor: double.tryParse(_valueController.text.replaceAll('R\$', '').replaceAll('.', '').replaceAll(',', '.')),
+        valor: double.tryParse(_valueController.text
+            .replaceAll('R\$', '')
+            .replaceAll('.', '')
+            .replaceAll(',', '.')),
         status: _selectedStatus,
         descricao: _descriptionController.text,
       );
@@ -137,7 +144,8 @@ class _IncomeScreenState extends State<IncomeScreen> {
                   child: Form(
                     key: _formSignInKey,
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start, // Alinhamento à esquerda
+                      crossAxisAlignment:
+                          CrossAxisAlignment.start, // Alinhamento à esquerda
                       children: [
                         const SizedBox(height: 20.0),
                         Text(
@@ -254,7 +262,8 @@ class _IncomeScreenState extends State<IncomeScreen> {
                         const SizedBox(height: 20.0),
                         TextFormField(
                           controller: _valueController,
-                          keyboardType: TextInputType.numberWithOptions(decimal: true),
+                          keyboardType:
+                              TextInputType.numberWithOptions(decimal: true),
                           inputFormatters: [
                             FilteringTextInputFormatter.digitsOnly,
                             CurrencyTextInputFormatter(),
@@ -275,7 +284,9 @@ class _IncomeScreenState extends State<IncomeScreen> {
                             ),
                           ),
                           validator: (value) {
-                            if (value == null || value.isEmpty || value == 'R\$ 0.00') {
+                            if (value == null ||
+                                value.isEmpty ||
+                                value == 'R\$ 0.00') {
                               return 'Entre com o valor';
                             }
                             return null;
@@ -349,25 +360,18 @@ class _IncomeScreenState extends State<IncomeScreen> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 30.0),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: _saveData,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.green,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                            child: const Padding(
-                              padding: EdgeInsets.all(20.0),
-                              child: Text(
-                                'Salvar',
-                                style: TextStyle(fontSize: 16.0),
-                              ),
+                        const SizedBox(height: 40.0),
+                        ElevatedButton(
+                          onPressed: _saveData,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            minimumSize: const Size.fromHeight(50),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
                             ),
                           ),
+                          child: const Text(
+                              style: TextStyle(color: Colors.white), 'Salvar'),
                         ),
                       ],
                     ),
@@ -382,7 +386,6 @@ class _IncomeScreenState extends State<IncomeScreen> {
   }
 }
 
-
 class CurrencyTextInputFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(
@@ -393,13 +396,15 @@ class CurrencyTextInputFormatter extends TextInputFormatter {
       return newValue.copyWith(text: 'R\$ 0.00');
     }
 
-    final number = double.tryParse(newValue.text.replaceAll(RegExp('[^\d]'), ''));
+    final number =
+        double.tryParse(newValue.text.replaceAll(RegExp('[^\d]'), ''));
 
     if (number == null) {
       return newValue;
     }
 
-    final formattedValue = 'R\$ ${number.toStringAsFixed(2).replaceAll('.', ',')}';
+    final formattedValue =
+        'R\$ ${number.toStringAsFixed(2).replaceAll('.', ',')}';
     return newValue.copyWith(text: formattedValue);
   }
 }

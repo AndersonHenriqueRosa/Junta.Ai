@@ -58,7 +58,8 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
           title: const Text('Adicionar Categoria'),
           content: TextField(
             controller: _categoryController,
-            decoration: const InputDecoration(hintText: 'Nome da nova categoria'),
+            decoration:
+                const InputDecoration(hintText: 'Nome da nova categoria'),
           ),
           actions: <Widget>[
             TextButton(
@@ -91,7 +92,10 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
       final despesa = Despesa(
         data: _selectedDate,
         categoria: _selectedCategory,
-        valor: double.tryParse(_valueController.text.replaceAll('R\$', '').replaceAll('.', '').replaceAll(',', '.')),
+        valor: double.tryParse(_valueController.text
+            .replaceAll('R\$', '')
+            .replaceAll('.', '')
+            .replaceAll(',', '.')),
         status: _selectedStatus,
         descricao: _descriptionController.text,
       );
@@ -141,7 +145,8 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
                   child: Form(
                     key: _formSignInKey,
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start, // Alinhamento à esquerda
+                      crossAxisAlignment:
+                          CrossAxisAlignment.start, // Alinhamento à esquerda
                       children: [
                         const SizedBox(height: 20.0),
                         Text(
@@ -258,7 +263,8 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
                         const SizedBox(height: 20.0),
                         TextFormField(
                           controller: _valueController,
-                          keyboardType: TextInputType.numberWithOptions(decimal: true),
+                          keyboardType:
+                              TextInputType.numberWithOptions(decimal: true),
                           inputFormatters: [
                             FilteringTextInputFormatter.digitsOnly,
                             CurrencyTextInputFormatter(),
@@ -279,7 +285,9 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
                             ),
                           ),
                           validator: (value) {
-                            if (value == null || value.isEmpty || value == 'R\$ 0.00') {
+                            if (value == null ||
+                                value.isEmpty ||
+                                value == 'R\$ 0.00') {
                               return 'Entre com o valor';
                             }
                             return null;
@@ -376,7 +384,8 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
                               borderRadius: BorderRadius.circular(10),
                             ),
                           ),
-                          child: const Text('Salvar'),
+                          child: const Text(
+                              style: TextStyle(color: Colors.white), 'Salvar'),
                         ),
                       ],
                     ),

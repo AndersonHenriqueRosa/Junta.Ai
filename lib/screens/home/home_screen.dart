@@ -35,7 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _getCurrentUser() {
     setState(() {
       _currentUser = _firebaseService.getCurrentUser();
-      print(_currentUser);
+      // print(_currentUser);
     });
   }
 
