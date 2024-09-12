@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:juntaai/screens/home/main_screen.dart';
 import 'package:juntaai/screens/planning_screen.dart';
 import 'package:juntaai/screens/profile_screen.dart';
 import 'package:juntaai/screens/transactions/transactions_screen.dart';
@@ -16,7 +17,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
 
   static final List<Widget> _screens = [
-    Container(),
+    const MainScreen(),
     const PlanningScreen(),
     const Placeholder(),
     const TransactionsScreen(),
@@ -27,6 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _selectedIndex = index;
     });
   }
+
 
   @override
   Widget build(BuildContext context) {
