@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:juntaai/screens/home/main_screen.dart';
 import 'package:juntaai/screens/planning_screen.dart';
 import 'package:juntaai/screens/profile_screen.dart';
 import 'package:juntaai/screens/transactions/transactions_screen.dart';
@@ -18,26 +19,26 @@ class _HomeScreenState extends State<HomeScreen> {
   User? _currentUser;
   final FirebaseService _firebaseService = FirebaseService();
 
-  static final List<Widget> _screens = [
-    Container(),
-    const PlanningScreen(),
-    const Placeholder(),
-    const TransactionsScreen(),
-    const ProfileScreen(),
-  ];
-
   @override
   void initState() {
     super.initState();
     _getCurrentUser();
   }
 
-  void _getCurrentUser() {
+  void _getCurrentUser() async {
+    User? user = _firebaseService.getCurrentUser();
     setState(() {
-      _currentUser = _firebaseService.getCurrentUser();
-      // print(_currentUser);
+      _currentUser = user;
     });
   }
+
+  List<Widget> get _screens => [
+        MainScreen(currentUser: _currentUser),
+        const PlanningScreen(),
+        const Placeholder(),
+        const TransactionsScreen(),
+        const ProfileScreen(),
+      ];
 
   void _onItemTapped(int index) {
     setState(() {
@@ -48,27 +49,14 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: _currentUser != null
-            ? Text(
-                'Bem-vindo, ${_currentUser!.displayName ?? _currentUser!.email}')
-            : const Text('Bem-vindo'),
-        automaticallyImplyLeading: false,
-        // actions: [
-        //   IconButton(
-        //     icon: const Icon(CupertinoIcons.person),
-        //     onPressed: () {
-        //       Navigator.push(
-        //         context,
-        //         MaterialPageRoute(
-        //           builder: (context) => const ProfileScreen(),
-        //         ),
-        //       );
-        //     },
-        //   ),
-        // ],
-      ),
-      body: _screens[_selectedIndex],
+      // appBar: AppBar(
+      //   title: _currentUser != null
+      //       ? Text(
+      //           'Bem-vindo, ${_currentUser!.displayName ?? _currentUser!.email}')
+      //       : const Text('Bem-vindo'),
+      //   automaticallyImplyLeading: false,
+      // ),
+      body: _screens[_selectedIndex], // Use the screens here
       bottomNavigationBar: BottomAppBar(
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,

@@ -1,27 +1,26 @@
-import 'package:flutter/cupertino.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:juntaai/data/user_info.dart';
-import 'package:juntaai/screens/transactions/expense_screen.dart';
-import 'package:juntaai/screens/transactions/income_screen.dart';
+import 'package:juntaai/take_right.dart';
 import 'package:juntaai/widgets/custom_scaffold.dart';
 import 'package:juntaai/widgets/income_expense_card.dart';
 import 'package:juntaai/widgets/transaction_item_tile.dart';
 
-class TransactionsScreen extends StatefulWidget {
-  const TransactionsScreen({super.key});
+class MainScreen extends StatelessWidget {
+  final User? currentUser;
 
-  @override
-  State<TransactionsScreen> createState() => _TransactionsScreenState();
-}
+  const MainScreen({Key? key, required this.currentUser}) : super(key: key);
 
-class _TransactionsScreenState extends State<TransactionsScreen> {
   @override
   Widget build(BuildContext context) {
-    final allTransactions = userdata.transaction
+    // Obtém os últimos 10 itens da lista e inverte a lista para mostrar o mais recente primeiro
+    final recentTransactions = userdata.transaction
+        .takeRight(10) // Obtém os últimos 10 itens da lista
         .toList()
         .reversed // Inverte a lista para mostrar o mais recente primeiro
         .toList();
-        
+
     return CustomScaffold(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -29,41 +28,45 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
           Container(
             color: Colors.orange, // Cor do fundo da seção superior
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 16.0),
+              padding:
+                  const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(CupertinoIcons.back, color: Colors.white),
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                      ),
-                      const SizedBox(width: 8.0), // Espaço entre o ícone e o texto
-                      Text(
-                        "Transações",
-                        style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                              color: Colors.white,
-                              fontSize: 24.0, // Ajuste o tamanho da fonte conforme necessário
-                            ),
-                      ),
-                    ],
+                  ListTile(
+                    title: Text(
+                      "Olá, ${currentUser?.displayName ?? currentUser?.email ?? 'Usuário'}!",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    leading: ClipRRect(
+                      borderRadius:
+                          const BorderRadius.all(Radius.circular(20.0)),
+                      child: Image.asset("assets/imgs/anderson.jpeg"),
+                    ),
+                    trailing: const Icon(CupertinoIcons.bell_solid,
+                        color: Colors.white),
                   ),
-                  const SizedBox(height: 8.0), // Espaço reduzido entre o texto e o saldo
+                  const SizedBox(height: 16.0),
                   Center(
                     child: Column(
                       children: [
                         Text(
                           "Saldo Atual",
-                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.white),
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyLarge
+                              ?.copyWith(color: Colors.white),
                         ),
                         const SizedBox(height: 8.0),
                         Text(
                           userdata.totalBalance,
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontSize: 18.0, fontWeight: FontWeight.w800, color: Colors.white),
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleLarge
+                              ?.copyWith(
+                                  fontSize: 18.0,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white),
                         ),
                       ],
                     ),
@@ -114,14 +117,16 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                   children: [
                     const SizedBox(height: 20.0),
                     Text(
-                      "Transações",
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
+                      "Transações Recentes",
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleLarge
+                          ?.copyWith(fontWeight: FontWeight.w700),
                     ),
                     const SizedBox(height: 16.0),
-                    ...allTransactions
-                        .map((transaction) => TransactionItemTile(transaction: transaction))
+                    ...recentTransactions
+                        .map((transaction) =>
+                            TransactionItemTile(transaction: transaction))
                         .toList(),
                   ],
                 ),
