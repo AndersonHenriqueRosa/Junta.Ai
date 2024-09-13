@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:juntaai/data/user_info.dart';
@@ -7,8 +8,9 @@ import 'package:juntaai/widgets/income_expense_card.dart';
 import 'package:juntaai/widgets/transaction_item_tile.dart';
 
 class MainScreen extends StatelessWidget {
-  const MainScreen({Key? key}) : super(key: key);
-  
+  final User? currentUser;
+
+  const MainScreen({Key? key, required this.currentUser}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -26,20 +28,23 @@ class MainScreen extends StatelessWidget {
           Container(
             color: Colors.orange, // Cor do fundo da seção superior
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+              padding:
+                  const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   ListTile(
                     title: Text(
-                      "Olá, ${userdata.name}!",
+                      "Olá, ${currentUser?.displayName ?? currentUser?.email ?? 'Usuário'}!",
                       style: TextStyle(color: Colors.white),
                     ),
                     leading: ClipRRect(
-                      borderRadius: const BorderRadius.all(Radius.circular(20.0)),
+                      borderRadius:
+                          const BorderRadius.all(Radius.circular(20.0)),
                       child: Image.asset("assets/imgs/anderson.jpeg"),
                     ),
-                    trailing: const Icon(CupertinoIcons.bell_solid, color: Colors.white),
+                    trailing: const Icon(CupertinoIcons.bell_solid,
+                        color: Colors.white),
                   ),
                   const SizedBox(height: 16.0),
                   Center(
@@ -47,13 +52,21 @@ class MainScreen extends StatelessWidget {
                       children: [
                         Text(
                           "Saldo Atual",
-                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.white),
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyLarge
+                              ?.copyWith(color: Colors.white),
                         ),
                         const SizedBox(height: 8.0),
                         Text(
                           userdata.totalBalance,
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontSize: 18.0, fontWeight: FontWeight.w800, color: Colors.white),
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleLarge
+                              ?.copyWith(
+                                  fontSize: 18.0,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white),
                         ),
                       ],
                     ),
@@ -105,11 +118,15 @@ class MainScreen extends StatelessWidget {
                     const SizedBox(height: 20.0),
                     Text(
                       "Transações Recentes",
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleLarge
+                          ?.copyWith(fontWeight: FontWeight.w700),
                     ),
                     const SizedBox(height: 16.0),
                     ...recentTransactions
-                        .map((transaction) => TransactionItemTile(transaction: transaction))
+                        .map((transaction) =>
+                            TransactionItemTile(transaction: transaction))
                         .toList(),
                   ],
                 ),
@@ -121,5 +138,3 @@ class MainScreen extends StatelessWidget {
     );
   }
 }
-
-
