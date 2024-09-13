@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:juntaai/screens/home/main_screen.dart';
 import 'package:juntaai/screens/planning_screen.dart';
 import 'package:juntaai/screens/profile_screen.dart';
 import 'package:juntaai/screens/transactions/transactions_screen.dart';
@@ -19,7 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final FirebaseService _firebaseService = FirebaseService();
 
   static final List<Widget> _screens = [
-    Container(),
+    const MainScreen(),
     const PlanningScreen(),
     const Placeholder(),
     const TransactionsScreen(),
