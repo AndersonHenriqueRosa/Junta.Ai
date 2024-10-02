@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:juntaai/screens/home/home_screen.dart';
+import 'package:juntaai/screens/main_constructor.dart';
 import 'package:juntaai/screens/signin_screen.dart';
 import 'package:juntaai/widgets/custom_scaffold.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -61,7 +61,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       const SizedBox(height: 20.0),
-                      // Campo para Nome
                       TextFormField(
                         controller: _nameController,
                         validator: (value) {
@@ -91,7 +90,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ),
                       ),
                       const SizedBox(height: 20.0),
-                      // Campo para Telefone
                       TextFormField(
                         controller: _phoneController,
                         validator: (value) {
@@ -121,7 +119,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ),
                       ),
                       const SizedBox(height: 20.0),
-                      // Campo para Email
                       TextFormField(
                         controller: _emailController,
                         validator: (value) {
@@ -151,7 +148,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ),
                       ),
                       const SizedBox(height: 20.0),
-                      // Campo para Senha
                       TextFormField(
                         controller: _passwordController,
                         obscureText: true,
@@ -183,7 +179,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ),
                       ),
                       const SizedBox(height: 20.0),
-                      // Campo para Confirmar Senha
                       TextFormField(
                         controller: _confirmPasswordController,
                         obscureText: true,
@@ -217,7 +212,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ),
                       ),
                       const SizedBox(height: 50.0),
-                      // Botão de Criar Conta
                       SizedBox(
                         width: 250,
                         child: ElevatedButton(
@@ -225,7 +219,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             if (_formSignInKey.currentState?.validate() ??
                                 false) {
                               try {
-                                // Criar a conta
                                 FirebaseService firebaseService =
                                     FirebaseService();
                                 User? user = await firebaseService.signUp(
@@ -247,7 +240,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) =>
-                                            const HomeScreen(),
+                                            const MainConstructor(),
                                       ),
                                     );
                                   }
@@ -263,7 +256,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ),
                       ),
                       const SizedBox(height: 20.0),
-                      // Link para login
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [

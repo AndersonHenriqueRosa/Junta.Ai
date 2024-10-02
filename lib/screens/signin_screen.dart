@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:juntaai/screens/forget_passsword_screen.dart';
-import 'package:juntaai/screens/home/home_screen.dart';
+import 'package:juntaai/screens/main_constructor.dart';
 import 'package:juntaai/screens/signup_screen.dart';
 import 'package:juntaai/widgets/custom_scaffold.dart';
 import 'package:juntaai/service/firebase_service.dart';
@@ -188,7 +188,7 @@ class _SignInScreenState extends State<SignInScreen> {
                                   Navigator.pushReplacement(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (e) => const HomeScreen(),
+                                      builder: (e) => const MainConstructor(),
                                     ),
                                   );
                                 }
@@ -213,7 +213,7 @@ class _SignInScreenState extends State<SignInScreen> {
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (e) => const HomeScreen(),
+                                  builder: (e) => const MainConstructor(),
                                 ),
                               );
                             }

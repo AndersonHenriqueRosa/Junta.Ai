@@ -5,7 +5,6 @@ import 'package:juntaai/screens/transactions/expense_screen.dart';
 import 'package:juntaai/screens/transactions/income_screen.dart';
 import 'package:juntaai/widgets/custom_scaffold.dart';
 import 'package:juntaai/widgets/income_expense_card.dart';
-import 'package:juntaai/widgets/transaction_item_tile.dart';
 
 class TransactionsScreen extends StatefulWidget {
   const TransactionsScreen({super.key});
@@ -21,7 +20,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
         .toList()
         .reversed // Inverte a lista para mostrar o mais recente primeiro
         .toList();
-        
+
     return CustomScaffold(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -36,34 +35,47 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                   Row(
                     children: [
                       IconButton(
-                        icon: const Icon(CupertinoIcons.back, color: Colors.white),
+                        icon: const Icon(CupertinoIcons.back,
+                            color: Colors.white),
                         onPressed: () {
                           Navigator.pop(context);
                         },
                       ),
-                      const SizedBox(width: 8.0), // Espaço entre o ícone e o texto
+                      const SizedBox(
+                          width: 8.0), // Espaço entre o ícone e o texto
                       Text(
                         "Transações",
-                        style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                              color: Colors.white,
-                              fontSize: 24.0, // Ajuste o tamanho da fonte conforme necessário
-                            ),
+                        style:
+                            Theme.of(context).textTheme.headlineLarge?.copyWith(
+                                  color: Colors.white,
+                                  fontSize:
+                                      24.0, // Ajuste o tamanho da fonte conforme necessário
+                                ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8.0), // Espaço reduzido entre o texto e o saldo
+                  const SizedBox(
+                      height: 8.0), // Espaço reduzido entre o texto e o saldo
                   Center(
                     child: Column(
                       children: [
                         Text(
                           "Saldo Atual",
-                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.white),
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyLarge
+                              ?.copyWith(color: Colors.white),
                         ),
                         const SizedBox(height: 8.0),
                         Text(
                           userdata.totalBalance,
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontSize: 18.0, fontWeight: FontWeight.w800, color: Colors.white),
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleLarge
+                              ?.copyWith(
+                                  fontSize: 18.0,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white),
                         ),
                       ],
                     ),
@@ -120,9 +132,6 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                           ),
                     ),
                     const SizedBox(height: 16.0),
-                    ...allTransactions
-                        .map((transaction) => TransactionItemTile(transaction: transaction))
-                        .toList(),
                   ],
                 ),
               ),

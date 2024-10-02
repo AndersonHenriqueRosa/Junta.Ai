@@ -1,28 +1,33 @@
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:juntaai/screens/home/main_screen.dart';
-import 'package:juntaai/screens/planning_screen.dart';
-import 'package:juntaai/screens/profile_screen.dart';
-import 'package:juntaai/screens/transactions/transactions_screen.dart';
-import 'package:juntaai/service/firebase_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:juntaai/screens/welcome_screen.dart';
+import 'package:juntaai/service/firebase_service.dart';
+import 'package:juntaai/service/user_transactions_service.dart'; // Importa o serviço de transações
+import 'package:juntaai/widgets/custom_scaffold.dart';
+import 'package:juntaai/widgets/home_transactions_list.dart';
+import 'package:juntaai/widgets/income_expense_card.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({Key? key}) : super(key: key);
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _selectedIndex = 0;
-  User? _currentUser;
   final FirebaseService _firebaseService = FirebaseService();
+  final UserTransactionsService _userTransactionsService =
+      UserTransactionsService(); // Nova instância do serviço
+  User? _currentUser;
+  List<Map<String, dynamic>> _recentTransactions =
+      []; // Lista para armazenar as transações
 
   @override
   void initState() {
     super.initState();
     _getCurrentUser();
+    _fetchRecentTransactions(); // Busca as transações recentes
   }
 
   void _getCurrentUser() async {
@@ -32,78 +37,192 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  List<Widget> get _screens => [
-        MainScreen(currentUser: _currentUser),
-        const PlanningScreen(),
-        const Placeholder(),
-        const TransactionsScreen(),
-        const ProfileScreen(),
-      ];
+  Widget getProfileImage() {
+    if (_currentUser?.photoURL != null) {
+      return Container(
+        width: 60,
+        height: 60,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle, // Faz o contêiner ser circular
+          // border: Border.all(
+          //   color: Colors.grey.shade300, // Cor da borda externa
+          //   width: 2, // Largura da borda
+          // ),
+          image: DecorationImage(
+            image: NetworkImage(_currentUser!.photoURL!),
+            fit: BoxFit.contain, // Ajusta a imagem para preencher o contêiner
+          ),
+        ),
+      );
+    } else {
+      return Container(
+        width: 60,
+        height: 60,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle, // Faz o contêiner ser circular
+          // border: Border.all(
+          //   color: Colors.grey.shade300, // Cor da borda externa
+          //   width: 2, // Largura da borda
+          // ),
+        ),
+        child: Icon(
+          Icons.account_circle,
+          size: 60,
+          color: Colors.white,
+        ),
+      );
+    }
+  }
 
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+  void _logout() async {
+    await _firebaseService.signOut(); // Chama a função de logout
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+          builder: (context) =>
+              const WelcomeScreen()), // Redireciona para a WelcomeScreen
+    );
+  }
+
+  Future<void> _fetchRecentTransactions() async {
+    try {
+      List<Map<String, dynamic>> transactions =
+          await _userTransactionsService.fetchRecentTransactions();
+      setState(() {
+        _recentTransactions = transactions; // Atualiza a lista de transações
+      });
+    } catch (e) {
+      print('Erro ao buscar transações: $e');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      // appBar: AppBar(
-      //   title: _currentUser != null
-      //       ? Text(
-      //           'Bem-vindo, ${_currentUser!.displayName ?? _currentUser!.email}')
-      //       : const Text('Bem-vindo'),
-      //   automaticallyImplyLeading: false,
-      // ),
-      body: _screens[_selectedIndex], // Use the screens here
-      bottomNavigationBar: BottomAppBar(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            buildNavBarItem(CupertinoIcons.home, 'Principal', 0),
-            buildNavBarItem(CupertinoIcons.flag, 'Planejamentos', 1),
-            const SizedBox(width: 20),
-            buildNavBarItem(CupertinoIcons.chart_bar, 'Transações', 3),
-            buildNavBarItem(CupertinoIcons.person, 'Usuário', 4),
-          ],
-        ),
-      ),
-      floatingActionButton: const ClipOval(
-        child: Material(
-          color: Colors.orange,
-          elevation: 10,
-          child: InkWell(
-            child: SizedBox(
-              width: 56,
-              height: 56,
-              child: Icon(
-                CupertinoIcons.add,
-                size: 28,
-                color: Colors.black,
+    return CustomScaffold(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(
+            color: Colors.orange, // Cor do fundo da seção superior
+            child: Padding(
+              padding:
+                  const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ListTile(
+                    title: Text(
+                      "Olá, ${_currentUser?.displayName ?? _currentUser?.email ?? 'Usuário'}!",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    leading:
+                        getProfileImage(), // Chama a função para exibir a imagem do usuário
+                    trailing: const Icon(CupertinoIcons.bell_solid,
+                        color: Colors.white),
+                  ),
+                  const SizedBox(height: 16.0),
+                  Center(
+                    child: Column(
+                      children: [
+                        Text(
+                          "Saldo Atual",
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyLarge
+                              ?.copyWith(color: Colors.white),
+                        ),
+                        const SizedBox(height: 8.0),
+                        Text(
+                          '100', // Valor fictício
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleLarge
+                              ?.copyWith(
+                                  fontSize: 18.0,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16.0),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: IncomeExpenseCard(
+                          expenseData: ExpenseData(
+                            Icons.arrow_upward_rounded,
+                            "Receita",
+                            '200', // Valor fictício
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16.0),
+                      Expanded(
+                        child: IncomeExpenseCard(
+                          expenseData: ExpenseData(
+                            Icons.arrow_downward_rounded,
+                            "Despesa",
+                            '300', // Valor fictício
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(
+                    height: 15.0,
+                  ),
+                  ElevatedButton(
+                    onPressed: _logout,
+                    child: const Text("Logout"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red, // Cor do botão de logout
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-    );
-  }
-
-  Widget buildNavBarItem(IconData icon, String label, int index) {
-    return InkWell(
-      onTap: () => _onItemTapped(index),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            color: _selectedIndex == index ? Colors.orange : Colors.black87,
-          ),
-          Text(
-            label,
-            style: TextStyle(
-              color: _selectedIndex == index ? Colors.orange : Colors.black87,
+          // Seção de transações recentes que ocupará o restante do espaço disponível
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(25.0, 20.0, 25.0, 20.0),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(40.0),
+                  topRight: Radius.circular(40.0),
+                ),
+              ),
+              child: ListView(
+                children: [
+                  const SizedBox(height: 20.0),
+                  Text(
+                    "Transações Recentes",
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleLarge
+                        ?.copyWith(fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 16.0),
+                  // Exibindo a lista de transações
+                  ..._recentTransactions.map((transaction) {
+                    return HomeTransactionsList(
+                      categoryName:
+                          transaction['categoryName'] ?? 'Sem descrição',
+                      amount: transaction['amount'] ?? 0.0,
+                      date: transaction['date'] != null
+                          ? transaction['date']
+                              .toDate()
+                              .toString() // Formate a data conforme necessário
+                          : 'Data desconhecida',
+                      type: transaction['type'] ??
+                          'outro', // Obtem o tipo correto
+                    );
+                  }).toList(),
+                ],
+              ),
             ),
           ),
         ],

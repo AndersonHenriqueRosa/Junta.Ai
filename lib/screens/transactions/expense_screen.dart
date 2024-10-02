@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:juntaai/despesa.dart';
-import 'package:juntaai/screens/transactions/income_screen.dart';
+import 'package:juntaai/screens/home/home_screen.dart';
+import 'package:juntaai/service/user_expense_service.dart';
+import 'package:juntaai/service/user_transactions_service.dart';
 
 class ExpenseScreen extends StatefulWidget {
   const ExpenseScreen({super.key});
@@ -11,29 +13,34 @@ class ExpenseScreen extends StatefulWidget {
 }
 
 class _ExpenseScreenState extends State<ExpenseScreen> {
+  final UserTransactionsService _userTransactionService =
+      UserTransactionsService();
+
+  final UserExpenseService _userExpenseService = UserExpenseService();
+
   final _formSignInKey = GlobalKey<FormState>();
   DateTime? _selectedDate;
-  String? _selectedCategory;
-  String? _selectedStatus = 'Realizado'; // Inicializa com "Realizado"
-  final List<String> _categories = [
-    'Alimentação',
-    'Transporte',
-    'Educação',
-    'Saúde',
-    'Lazer',
-    'Outros',
-  ];
-
-  final List<String> _statuses = [
-    'Realizado',
-    'Previsto',
-  ];
+  String? _selectedCategoryId;
+  Map<String, String> _categories = {};
 
   final TextEditingController _valueController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
 
-  // Lista para armazenar as receitas
   final List<Despesa> _despesas = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCategories();
+  }
+
+  Future<void> _loadCategories() async {
+    Map<String, String> categories =
+        await _userTransactionService.fetchCategories();
+    setState(() {
+      _categories = categories;
+    });
+  }
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -73,8 +80,8 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
                 final newCategory = _categoryController.text.trim();
                 if (newCategory.isNotEmpty) {
                   setState(() {
-                    _categories.add(newCategory);
-                    _selectedCategory = newCategory;
+                    _categories['new_category_id'] = newCategory;
+                    _selectedCategoryId = 'new_category_id';
                   });
                 }
                 Navigator.of(context).pop();
@@ -87,18 +94,80 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
     );
   }
 
-  void _saveData() {
+  void _saveData() async {
     if (_formSignInKey.currentState?.validate() ?? false) {
+      // Obtém o nome da categoria usando o ID selecionado
+      String categoryName =
+          _categories[_selectedCategoryId!] ?? 'Categoria Desconhecida';
+
       final despesa = Despesa(
         data: _selectedDate,
-        categoria: _selectedCategory,
+        categoria: _selectedCategoryId,
         valor: double.tryParse(_valueController.text
             .replaceAll('R\$', '')
             .replaceAll('.', '')
             .replaceAll(',', '.')),
-        status: _selectedStatus,
-        descricao: _descriptionController.text,
+        descricao: _descriptionController.text.isEmpty
+            ? null
+            : _descriptionController.text, // Permite que a descrição seja nula
       );
+
+      // Tenta adicionar a transação e captura o resultado
+      bool success = await _userExpenseService.addTransactionExpense(
+        _selectedCategoryId!, // Passa o ID da categoria
+        categoryName, // Passa o nome da categoria
+        despesa.valor ?? 0.0, // Se valor for null, usa 0
+        despesa.descricao, // Pode ser nulo
+        despesa.data!,
+      );
+
+      // Exibe um modal com o resultado
+      if (success) {
+        // Se a transação foi bem-sucedida, mostre um diálogo de sucesso
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Sucesso'),
+              content: const Text('Despesa adicionada!'),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('OK'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const HomeScreen(),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      } else {
+        // Se houve um erro, mostre um diálogo de erro
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Erro'),
+              content: const Text(
+                  'Ocorreu um erro ao salvar a transação. Tente novamente.'),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('OK'),
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Fecha o diálogo
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      }
 
       setState(() {
         _despesas.add(despesa);
@@ -109,8 +178,7 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
       _valueController.clear();
       _descriptionController.clear();
       _selectedDate = null;
-      _selectedCategory = null;
-      _selectedStatus = 'Realizado';
+      _selectedCategoryId = null;
     }
   }
 
@@ -209,16 +277,16 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
                           children: [
                             Expanded(
                               child: DropdownButtonFormField<String>(
-                                value: _selectedCategory,
+                                value: _selectedCategoryId,
                                 onChanged: (String? newValue) {
                                   setState(() {
-                                    _selectedCategory = newValue;
+                                    _selectedCategoryId = newValue;
                                   });
                                 },
-                                items: _categories.map((String category) {
+                                items: _categories.entries.map((entry) {
                                   return DropdownMenuItem<String>(
-                                    value: category,
-                                    child: Text(category),
+                                    value: entry.key,
+                                    child: Text(entry.value),
                                   );
                                 }).toList(),
                                 decoration: InputDecoration(
@@ -321,59 +389,8 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
                               borderRadius: BorderRadius.circular(10),
                             ),
                           ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Entre com a descrição';
-                            }
-                            return null;
-                          },
                         ),
                         const SizedBox(height: 20.0),
-                        // DropdownButton para seleção entre "Realizado" e "Previsto"
-                        Text(
-                          'Status',
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 20.0),
-                        DropdownButtonFormField<String>(
-                          value: _selectedStatus,
-                          onChanged: (String? newValue) {
-                            setState(() {
-                              _selectedStatus = newValue;
-                            });
-                          },
-                          items: _statuses.map((String status) {
-                            return DropdownMenuItem<String>(
-                              value: status,
-                              child: Text(status),
-                            );
-                          }).toList(),
-                          decoration: InputDecoration(
-                            labelText: 'Selecione o Status',
-                            border: OutlineInputBorder(
-                              borderSide: const BorderSide(
-                                color: Colors.black12,
-                              ),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(
-                                color: Colors.black12,
-                              ),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Selecione um status';
-                            }
-                            return null;
-                          },
-                        ),
                         const SizedBox(height: 40.0),
                         ElevatedButton(
                           onPressed: _saveData,
@@ -397,5 +414,28 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
         ),
       ),
     );
+  }
+}
+
+class CurrencyTextInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    if (newValue.text.isEmpty) {
+      return newValue.copyWith(text: 'R\$ 0.00');
+    }
+
+    final number =
+        double.tryParse(newValue.text.replaceAll(RegExp('[^\d]'), ''));
+
+    if (number == null) {
+      return newValue;
+    }
+
+    final formattedValue =
+        'R\$ ${number.toStringAsFixed(2).replaceAll('.', ',')}';
+    return newValue.copyWith(text: formattedValue);
   }
 }
