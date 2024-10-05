@@ -21,8 +21,8 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
         .reversed // Inverte a lista para mostrar o mais recente primeiro
         .toList();
 
-    return CustomScaffold(
-      child: Column(
+    return Scaffold(
+      body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Container(

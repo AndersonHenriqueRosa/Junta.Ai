@@ -31,8 +31,8 @@ class UserTransactionsService {
     User? user = _auth.currentUser; // Obtém o usuário atual
     List<Map<String, dynamic>> transactions =
         []; // Lista para armazenar as transações
-    Map<String, String> categoryNames =
-        {}; // Mapa para armazenar os nomes das categorias
+    // Map<String, String> categoryNames =
+    //     {}; // Mapa para armazenar os nomes das categorias
 
     if (user == null) {
       throw 'Usuário não autenticado.'; // Lança um erro se o usuário não estiver autenticado
@@ -54,30 +54,30 @@ class UserTransactionsService {
         transactions.add(doc.data() as Map<String, dynamic>);
       }
 
-      // 3. Obtém os IDs de categoria
-      Set<String> categoryIds =
-          transactions.map((tx) => tx['categoryId'] as String).toSet();
+      // // 3. Obtém os IDs de categoria
+      // Set<String> categoryIds =
+      //     transactions.map((tx) => tx['categoryId'] as String).toSet();
 
-      // 4. Busca os nomes das categorias com base nos IDs
-      if (categoryIds.isNotEmpty) {
-        QuerySnapshot categorySnapshot = await _firestore
-            .collection('categories')
-            .where(FieldPath.documentId,
-                whereIn: categoryIds.toList()) // Busca categorias pelos IDs
-            .get();
+      // // 4. Busca os nomes das categorias com base nos IDs
+      // if (categoryIds.isNotEmpty) {
+      //   QuerySnapshot categorySnapshot = await _firestore
+      //       .collection('categories')
+      //       .where(FieldPath.documentId,
+      //           whereIn: categoryIds.toList()) // Busca categorias pelos IDs
+      //       .get();
 
-        for (var categoryDoc in categorySnapshot.docs) {
-          categoryNames[categoryDoc.id] =
-              categoryDoc['name'] as String; // Armazena o nome da categoria
-        }
-      }
+      //   for (var categoryDoc in categorySnapshot.docs) {
+      //     categoryNames[categoryDoc.id] =
+      //         categoryDoc['name'] as String; // Armazena o nome da categoria
+      //   }
+      // }
 
-      // 5. Adiciona o nome da categoria a cada transação
-      for (var transaction in transactions) {
-        transaction['categoryName'] =
-            categoryNames[transaction['categoryId']] ??
-                'Categoria Desconhecida'; // Adiciona o nome da categoria
-      }
+      // // 5. Adiciona o nome da categoria a cada transação
+      // for (var transaction in transactions) {
+      //   transaction['categoryName'] =
+      //       categoryNames[transaction['categoryId']] ??
+      //           'Categoria Desconhecida'; // Adiciona o nome da categoria
+      // }
 
       return transactions; // Retorna a lista de transações
     } catch (e) {

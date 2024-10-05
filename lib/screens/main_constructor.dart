@@ -75,24 +75,24 @@ class _MainConstructorState extends State<MainConstructor> {
           ],
         ),
       ),
-      floatingActionButton: const ClipOval(
-        child: Material(
-          color: Colors.orange,
-          elevation: 10,
-          child: InkWell(
-            child: SizedBox(
-              width: 56,
-              height: 56,
-              child: Icon(
-                CupertinoIcons.add,
-                size: 28,
-                color: Colors.black,
-              ),
-            ),
-          ),
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      // floatingActionButton: const ClipOval(
+      //   child: Material(
+      //     color: Colors.orange,
+      //     elevation: 10,
+      //     child: InkWell(
+      //       child: SizedBox(
+      //         width: 56,
+      //         height: 56,
+      //         child: Icon(
+      //           CupertinoIcons.add,
+      //           size: 28,
+      //           color: Colors.black,
+      //         ),
+      //       ),
+      //     ),
+      //   ),
+      // ),
+      // floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 

@@ -1,12 +1,14 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:juntaai/screens/transactions/income_screen.dart';
 import 'package:juntaai/screens/welcome_screen.dart';
 import 'package:juntaai/service/firebase_service.dart';
 import 'package:juntaai/service/user_transactions_service.dart'; // Importa o serviço de transações
 import 'package:juntaai/widgets/custom_scaffold.dart';
 import 'package:juntaai/widgets/home_transactions_list.dart';
 import 'package:juntaai/widgets/income_expense_card.dart';
+import 'package:flutter_expandable_fab/flutter_expandable_fab.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -98,8 +100,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return CustomScaffold(
-      child: Column(
+    return Scaffold(
+      body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Container(
@@ -227,6 +229,64 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
+
+
+  floatingActionButtonLocation: ExpandableFab.location,
+  floatingActionButton: ExpandableFab(
+  type: ExpandableFabType.fan,
+  pos: ExpandableFabPos.center,
+  fanAngle: 180,
+  distance: 90,
+    overlayStyle: ExpandableFabOverlayStyle(
+    color: Colors.black.withOpacity(0.3),
+  ),
+  children: [
+    Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        FloatingActionButton.small(
+          heroTag: null,
+          onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const IncomeScreen(),
+                ),
+              );
+            },
+          child: const Icon(Icons.trending_up),
+        ),
+        const SizedBox(height: 8), // Espaço entre o botão e o texto
+        const Text('Receita', style: TextStyle(fontSize: 12)),
+      ],
+    ),
+    Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        FloatingActionButton.small(
+          heroTag: null,
+          onPressed: () {},
+          child: const Icon(Icons.smart_toy),
+        ),
+        const SizedBox(height: 8), // Espaço entre o botão e o texto
+        const Text('IA', style: TextStyle(fontSize: 12)),
+      ],
+    ),
+        Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        FloatingActionButton.small(
+          heroTag: null,
+          onPressed: () {},
+          child: const Icon(Icons.money_off),
+        ),
+        const SizedBox(height: 8), 
+        const Text('Despesa', style: TextStyle(fontSize: 12)),
+      ],
+    ),
+  ],
+),
+
     );
   }
 }
