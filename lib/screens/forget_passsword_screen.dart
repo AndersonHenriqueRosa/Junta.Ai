@@ -12,8 +12,9 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
   final _formSignInKey = GlobalKey<FormState>();
   @override
   Widget build(BuildContext context) {
-    return CustomScaffold(
-      child: Column(
+    return Scaffold(
+      backgroundColor: Colors.orange,
+      body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Expanded(

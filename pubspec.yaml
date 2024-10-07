@@ -44,7 +44,9 @@ dev_dependencies:
   cloud_firestore:
   google_sign_in:
   flutter_expandable_fab:
-
+  intl: ^0.19.0
+  flutter_localizations: 
+    sdk: flutter
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
   # activated in the `analysis_options.yaml` file located at the root of your
@@ -64,10 +66,6 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-    - assets/
-    - assets/icons/
-    - assets/imgs/
-
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
 

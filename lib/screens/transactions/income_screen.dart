@@ -96,7 +96,6 @@ class _IncomeScreenState extends State<IncomeScreen> {
 
   void _saveData() async {
     if (_formSignInKey.currentState?.validate() ?? false) {
-      // Obtém o nome da categoria usando o ID selecionado
       String categoryName =
           _categories[_selectedCategoryId!] ?? 'Categoria Desconhecida';
 
@@ -109,21 +108,18 @@ class _IncomeScreenState extends State<IncomeScreen> {
             .replaceAll(',', '.')),
         descricao: _descriptionController.text.isEmpty
             ? null
-            : _descriptionController.text, // Permite que a descrição seja nula
+            : _descriptionController.text, 
       );
 
-      // Tenta adicionar a transação e captura o resultado
       bool success = await _userIncomeService.addTransactionIncome(
-        _selectedCategoryId!, // Passa o ID da categoria
-        categoryName, // Passa o nome da categoria
-        receita.valor ?? 0.0, // Se valor for null, usa 0
-        receita.descricao, // Pode ser nulo
+        _selectedCategoryId!, 
+        categoryName, 
+        receita.valor ?? 0.0, 
+        receita.descricao, 
         receita.data!,
       );
 
-      // Exibe um modal com o resultado
       if (success) {
-        // Se a transação foi bem-sucedida, mostre um diálogo de sucesso
         showDialog(
           context: context,
           builder: (BuildContext context) {

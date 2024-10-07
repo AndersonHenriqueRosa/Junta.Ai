@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:juntaai/screens/forget_passsword_screen.dart';
+import 'package:juntaai/screens/home/home_screen.dart';
 import 'package:juntaai/screens/main_constructor.dart';
 import 'package:juntaai/screens/signup_screen.dart';
 import 'package:juntaai/widgets/custom_scaffold.dart';
@@ -24,8 +25,9 @@ class _SignInScreenState extends State<SignInScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return CustomScaffold(
-      child: Column(
+    return Scaffold(
+      backgroundColor: Colors.orange,
+      body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Expanded(
@@ -188,7 +190,7 @@ class _SignInScreenState extends State<SignInScreen> {
                                   Navigator.pushReplacement(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (e) => const MainConstructor(),
+                                      builder: (e) => const HomeScreen(),
                                     ),
                                   );
                                 }
@@ -213,7 +215,7 @@ class _SignInScreenState extends State<SignInScreen> {
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (e) => const MainConstructor(),
+                                  builder: (e) => const HomeScreen(),
                                 ),
                               );
                             }

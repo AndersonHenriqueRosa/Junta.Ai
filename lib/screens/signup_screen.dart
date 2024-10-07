@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:juntaai/screens/home/home_screen.dart';
 import 'package:juntaai/screens/main_constructor.dart';
 import 'package:juntaai/screens/signin_screen.dart';
 import 'package:juntaai/widgets/custom_scaffold.dart';
@@ -24,8 +25,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return CustomScaffold(
-      child: Column(
+    return Scaffold(
+      backgroundColor: Colors.orange,
+      body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Expanded(
@@ -240,7 +242,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) =>
-                                            const MainConstructor(),
+                                            const HomeScreen(),
                                       ),
                                     );
                                   }

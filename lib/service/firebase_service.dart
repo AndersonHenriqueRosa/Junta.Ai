@@ -88,8 +88,14 @@ class FirebaseService {
       await _saveUserToFirestore(user!);
       await createDefaultCategories();
       return user;
+    } on FirebaseAuthException catch (e) {
+      throw 'Erro de autenticação: ${e.message}';
     } catch (e) {
-      throw 'Erro ao fazer login com Google: $e';
+      if (e.toString().contains('popup_closed')) {
+        throw 'O processo de login foi cancelado. Por favor, tente novamente';
+      } else {
+        throw 'Erro ao fazer login com Google: $e';
+      }
     }
   }
 

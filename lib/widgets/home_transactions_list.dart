@@ -23,9 +23,9 @@ class HomeTransactionsList extends StatelessWidget {
       case 'conta':
         return Icons.house;
       case 'entretenimento':
-        return Icons.movie; // Exemplo de novo tipo
+        return Icons.movie; 
       default:
-        return Icons.category; // Ícone padrão
+        return Icons.category; 
     }
   }
 
@@ -34,28 +34,20 @@ class HomeTransactionsList extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8.0),
       decoration: BoxDecoration(
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black12,
-            offset: Offset.zero,
-            blurRadius: 10,
-            spreadRadius: 4,
-          ),
-        ],
-        color: const Color(0XFFf8fafb),
-        borderRadius: const BorderRadius.all(Radius.circular(12.0)),
+      color: const Color(0XFFf8fafb),
+      borderRadius: const BorderRadius.all(Radius.circular(12.0)),
       ),
       child: ListTile(
         leading: Container(
           padding: const EdgeInsets.all(8.0),
           decoration: const BoxDecoration(
-            color: Colors.orange, // Cor do fundo alterada para laranja
+            color: Colors.orange, 
             borderRadius: BorderRadius.all(Radius.circular(6.0)),
           ),
           child: Icon(
             _getCategoryIcon(categoryName),
             color: Colors.white,
-          ), // Usar ícone baseado na categoria
+          ), 
         ),
         title: Text(
           categoryName,
@@ -69,11 +61,11 @@ class HomeTransactionsList extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "R\$ ${amount.toStringAsFixed(2)}", // Formata o valor
+              "R\$ ${amount.toStringAsFixed(2)}", 
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: type == 'income'
-                        ? Colors.green // Cor verde se for income
-                        : Colors.red, // Cor vermelha se for expense
+                        ? Colors.green 
+                        : Colors.red, 
                     fontSize: 13.0,
                     fontWeight: FontWeight.w700,
                   ),
@@ -87,11 +79,11 @@ class HomeTransactionsList extends StatelessWidget {
             ),
           ],
         ),
-        trailing: type == 'income' // Exibe a seta para cima se for "income"
+        trailing: type == 'income' 
             ? Icon(Icons.arrow_upward, color: Colors.green)
-            : type == 'expense' // Exibe a seta para baixo se for "expense"
+            : type == 'expense' 
                 ? Icon(Icons.arrow_downward, color: Colors.red)
-                : null, // Sem ícone se não for income nem expense
+                : null, 
       ),
     );
   }

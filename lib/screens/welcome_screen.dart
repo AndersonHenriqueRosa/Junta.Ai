@@ -9,8 +9,9 @@ class WelcomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CustomScaffold(
-      child: Column(
+    return Scaffold(  
+      backgroundColor: Colors.orange,
+      body: Column(
         mainAxisAlignment: MainAxisAlignment.center, // Centraliza verticalmente
         children: [
           Expanded(

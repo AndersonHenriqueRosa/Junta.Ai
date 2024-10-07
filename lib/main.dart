@@ -5,6 +5,8 @@ import 'package:juntaai/screens/home/home_screen.dart';
 import 'package:juntaai/screens/main_constructor.dart';
 import 'package:juntaai/screens/welcome_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,6 +24,14 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Bem-Vindo ao Junta.Ai',
+      localizationsDelegates: [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: [
+        const Locale('pt', 'BR'), // Configuração de português Brasil
+      ],
       home: RouterScreen(),
     );
   }
@@ -37,7 +47,7 @@ class RouterScreen extends StatelessWidget {
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             print(snapshot.hasData);
-            return const MainConstructor();
+            return const HomeScreen();
           } else {
             return const WelcomeScreen();
           }
