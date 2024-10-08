@@ -185,7 +185,8 @@ class _IncomeScreenState extends State<IncomeScreen> {
         leading: IconButton(onPressed: (){
           Navigator.pop(context);
         }, icon: Icon(Icons.arrow_back
-        )),
+        )
+        ),
         title: const Text(
           "Receita",
           style: TextStyle(color: Colors.white),

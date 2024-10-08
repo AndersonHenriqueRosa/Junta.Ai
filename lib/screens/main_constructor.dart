@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:juntaai/screens/home/home_screen.dart';
-import 'package:juntaai/screens/planning_screen.dart';
+import 'package:juntaai/screens/planning/planning_screen.dart';
 import 'package:juntaai/screens/profile_screen.dart';
 import 'package:juntaai/screens/transactions/expense_screen.dart';
 import 'package:juntaai/screens/transactions/income_screen.dart';

@@ -45,6 +45,7 @@ dev_dependencies:
   google_sign_in:
   flutter_expandable_fab:
   intl: ^0.19.0
+  flutter_masked_text2: ^0.9.0
   flutter_localizations: 
     sdk: flutter
   # The "flutter_lints" package below contains a set of recommended lints to
