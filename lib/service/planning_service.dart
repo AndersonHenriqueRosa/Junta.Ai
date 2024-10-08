@@ -1,3 +1,4 @@
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -5,8 +6,71 @@ class PlanningService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Função para adicionar planejamento
   Future<bool> addPlanning(String planningName, double goalAmount) async {
+    try {
+      User? user = _auth.currentUser;
+
+      if (user == null) {
+        print('Usuário não autenticado.');
+        throw 'Usuário não autenticado.';
+      }
+
+      print('Adicionando planejamento: $planningName, Meta: $goalAmount');
+
+      await _firestore.collection('planning').add({
+        'userId': user.uid, 
+        'planningName': planningName, 
+        'goalAmount': goalAmount, 
+        'savedAmount': 0.0, 
+        'createdAt': FieldValue.serverTimestamp(), 
+      });
+
+      print('Planejamento adicionado com sucesso');
+      return true; 
+    } catch (e) {
+      print('Erro ao adicionar planejamento: $e');
+      return false; 
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> fetchPlannings() async {
+    try {
+      User? user = _auth.currentUser;
+
+      if (user == null) {
+        print('Usuário não autenticado.');
+        throw 'Usuário não autenticado.';
+      }
+
+      print('Buscando planejamentos para o usuário: ${user.uid}');
+
+      QuerySnapshot snapshot = await _firestore
+          .collection('planning')
+          .where('userId', isEqualTo: user.uid)
+          .get();
+
+      print('Planejamentos encontrados: ${snapshot.docs.length}');
+
+      List<Map<String, dynamic>> plannings = snapshot.docs.map((doc) {
+        print('Planejamento: ${doc['planningName']}');
+        return {
+          'id': doc.id,
+          'planningName': doc['planningName'],
+          'savedAmount': (doc['savedAmount'] as num).toDouble(),
+          'goalAmount': (doc['goalAmount'] as num).toDouble(),
+        };
+      }).toList();
+
+      print('Retornando lista de planejamentos');
+      return plannings;
+    } catch (e) {
+      print('Erro ao buscar planejamentos: $e');
+      throw e; 
+    }
+  }
+
+
+   Future<void> addRevenueToPlanning(String planningId, double amount) async {
     try {
       User? user = _auth.currentUser;
 
@@ -14,55 +78,76 @@ class PlanningService {
         throw 'Usuário não autenticado.';
       }
 
-      // Adiciona o planejamento ao Firestore
-      await _firestore.collection('planejamento').add({
-        'userId': user.uid, // UID do usuário autenticado
-        'planningName': planningName, // Nome do planejamento
-        'goalAmount': goalAmount, // Meta financeira
-        'savedAmount': 0.0, // Inicia o valor poupado como 0
-        'createdAt': FieldValue.serverTimestamp(), // Timestamp do servidor
-      });
+      DocumentReference planningRef = _firestore.collection('planning').doc(planningId);
 
-      return true; // Retorna sucesso
-    } catch (e) {
-      print('Erro ao adicionar planejamento: $e');
-      return false; // Retorna falha
-    }
-  }
+      await _firestore.runTransaction((transaction) async {
+        await _firestore.collection('planning').doc(planningId).collection('revenues').add({
+          'amount': amount,
+          'date': FieldValue.serverTimestamp(),
+        });
 
-  // Função para buscar todos os planejamentos do usuário autenticado
-  Stream<QuerySnapshot> getPlannings() {
-    User? user = _auth.currentUser;
+        QuerySnapshot revenuesSnapshot = await _firestore
+            .collection('planning')
+            .doc(planningId)
+            .collection('revenues')
+            .get();
 
-    if (user == null) {
-      throw 'Usuário não autenticado.';
-    }
+        double newSavedAmount = revenuesSnapshot.docs.fold(0.0, (sum, doc) {
+          return sum + (doc['amount'] as num).toDouble();
+        });
 
-    // Retorna o stream com os planejamentos do usuário
-    return _firestore
-        .collection('planejamento')
-        .where('userId', isEqualTo: user.uid)
-        .orderBy('createdAt', descending: true)
-        .snapshots();
-  }
-
-  // Função para atualizar o valor poupado de um planejamento
-  Future<void> updateSavedAmount(String planningId, double newSavedAmount) async {
-    try {
-      await _firestore.collection('planejamento').doc(planningId).update({
-        'savedAmount': newSavedAmount,
+        transaction.update(planningRef, {'savedAmount': newSavedAmount});
       });
     } catch (e) {
-      print('Erro ao atualizar valor poupado: $e');
+      print('Erro ao adicionar receita ao planejamento e recalcular o valor: $e');
+      throw e;
     }
   }
 
-  // Função para excluir um planejamento
-  Future<void> deletePlanning(String planningId) async {
+
+   Future<List<Map<String, dynamic>>> fetchRevenues(String planningId) async {
     try {
-      await _firestore.collection('planejamento').doc(planningId).delete();
+      User? user = _auth.currentUser;
+
+      if (user == null) {
+        throw 'Usuário não autenticado.';
+      }
+
+      QuerySnapshot snapshot = await _firestore
+          .collection('planning')
+          .doc(planningId)
+          .collection('revenues')
+          .orderBy('date', descending: true)
+          .get();
+
+      List<Map<String, dynamic>> revenues = snapshot.docs.map((doc) {
+        return {
+          'value': (doc['amount'] as num).toDouble(),
+          'date': (doc['date'] as Timestamp).toDate(),
+        };
+      }).toList();
+
+      return revenues;
     } catch (e) {
-      print('Erro ao excluir planejamento: $e');
+      print('Erro ao buscar histórico de receitas: $e');
+      throw e;
     }
   }
+
+ Future<double> getUpdatedSavedAmount(String planningId) async {
+    try {
+      DocumentSnapshot planningSnapshot = await _firestore.collection('planning').doc(planningId).get();
+
+      if (!planningSnapshot.exists) {
+        throw 'Planejamento não encontrado';
+      }
+
+      double updatedSavedAmount = (planningSnapshot['savedAmount'] as num).toDouble();
+
+      return updatedSavedAmount;
+    } catch (e) {
+      print('Erro ao buscar savedAmount: $e');
+      throw e;
+    }
+  }  
 }

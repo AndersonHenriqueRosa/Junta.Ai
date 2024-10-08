@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart'; // Importa a biblioteca para formatação monetária
 
 class TransactionsData {
   final String categoryName;
@@ -21,6 +22,19 @@ class TransactionsList extends StatelessWidget {
     Key? key,
     required this.transactions,
   }) : super(key: key);
+
+  // Função para formatar o valor como Real Brasileiro
+  String _formatCurrency(double value) {
+    final NumberFormat formatter = NumberFormat.simpleCurrency(locale: 'pt_BR');
+    return formatter.format(value);
+  }
+
+   // Função para formatar a data no padrão brasileiro DD/MM/AAAA
+  String _formatDate(String dateString) {
+    final DateTime parsedDate = DateTime.parse(dateString);
+    final DateFormat formatter = DateFormat('dd/MM/yyyy', 'pt_BR');
+    return formatter.format(parsedDate);
+  }
 
   IconData _getCategoryIcon(String categoryName) {
     switch (categoryName) {
@@ -73,8 +87,9 @@ class TransactionsList extends StatelessWidget {
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Exibindo o valor formatado como Real Brasileiro
                 Text(
-                  "R\$ ${transaction.amount.toStringAsFixed(2)}",
+                  _formatCurrency(transaction.amount),
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         color: transaction.type == 'income' ? Colors.green : Colors.red,
                         fontSize: 13.0,
@@ -82,7 +97,7 @@ class TransactionsList extends StatelessWidget {
                       ),
                 ),
                 Text(
-                  transaction.date,
+              _formatDate(transaction.date),
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         color: const Color(0XFF3a4d62),
                         fontSize: 12.0,

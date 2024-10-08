@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:juntaai/screens/home/home_screen.dart';
-import 'package:juntaai/screens/main_constructor.dart';
 import 'package:juntaai/screens/signin_screen.dart';
-import 'package:juntaai/widgets/custom_scaffold.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:juntaai/service/firebase_service.dart';
 
@@ -17,11 +15,40 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _formSignInKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController =
-      TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
-  bool rememberPassword = true;
+
+  String? _errorMessage;
+
+void _showLoading() {
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    },
+  );
+}
+
+void _hideLoading() {
+  Navigator.of(context).pop(); 
+}
+
+
+
+  String? _validateEmail(String? value) {
+    const String emailPattern =
+        r'^[a-zA-Z0-9.a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9]+\.[a-zA-Z]+';
+    final RegExp regex = RegExp(emailPattern);
+    if (value == null || value.isEmpty) {
+      return 'Entre com Email';
+    } else if (!regex.hasMatch(value)) {
+      return 'Entre com um Email válido';
+    }
+    return null;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -93,42 +120,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ),
                       const SizedBox(height: 20.0),
                       TextFormField(
-                        controller: _phoneController,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Entre com Telefone';
-                          }
-                          return null;
-                        },
-                        decoration: InputDecoration(
-                          labelText: 'Telefone',
-                          hintText: '(99) 99999-9999',
-                          hintStyle: const TextStyle(
-                            color: Colors.black26,
-                          ),
-                          border: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                              color: Colors.black12,
-                            ),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                              color: Colors.black12,
-                            ),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 20.0),
-                      TextFormField(
                         controller: _emailController,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Entre com Email';
-                          }
-                          return null;
-                        },
+                        validator: _validateEmail, 
                         decoration: InputDecoration(
                           labelText: 'Email',
                           hintText: 'example@example.com',
@@ -213,50 +206,76 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           ),
                         ),
                       ),
+                      const SizedBox(height: 20.0),
+                      if (_errorMessage != null)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          child: Text(
+                            _errorMessage!,
+                            style: TextStyle(
+                              color: Colors.red,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
                       const SizedBox(height: 50.0),
                       SizedBox(
                         width: 250,
                         child: ElevatedButton(
                           onPressed: () async {
-                            if (_formSignInKey.currentState?.validate() ??
-                                false) {
+                            if (_formSignInKey.currentState?.validate() ?? false) {
+                              _showLoading(); 
+
                               try {
-                                FirebaseService firebaseService =
-                                    FirebaseService();
+                                FirebaseService firebaseService = FirebaseService();
                                 User? user = await firebaseService.signUp(
                                   _emailController.text,
                                   _passwordController.text,
                                   _nameController.text,
-                                  _phoneController.text,
                                 );
 
                                 if (user != null) {
-                                  User? loggedInUser =
-                                      await firebaseService.signIn(
+                                  User? loggedInUser = await firebaseService.signIn(
                                     _emailController.text,
                                     _passwordController.text,
                                   );
+
+                                  _hideLoading(); 
 
                                   if (loggedInUser != null) {
                                     Navigator.pushReplacement(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) =>
-                                            const HomeScreen(),
+                                        builder: (context) => const HomeScreen(),
                                       ),
                                     );
                                   }
-                                }
+                                } 
+                              } on FirebaseAuthException catch (e) {
+                                _hideLoading();
+                                setState(() {
+                                  if (e.code == 'email-already-in-use') {
+                                    _errorMessage = 'O e-mail já está em uso por outra conta. Tente outro e-mail.';
+                                  } else if (e.code == 'invalid-email') {
+                                    _errorMessage = 'O e-mail informado é inválido. Verifique o formato e tente novamente.';
+                                  } else if (e.code == 'weak-password') {
+                                    _errorMessage = 'A senha é muito fraca. Tente uma senha mais forte.';
+                                  } else {
+                                    _errorMessage = 'Erro ao criar conta: ${e.message}';
+                                  }
+                                });
                               } catch (e) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Erro: $e')),
-                                );
+                                _hideLoading(); 
+                                setState(() {
+                                  _errorMessage = 'Erro inesperado: $e';
+                                });
                               }
                             }
                           },
                           child: const Text('Criar Conta'),
                         ),
                       ),
+
                       const SizedBox(height: 20.0),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,

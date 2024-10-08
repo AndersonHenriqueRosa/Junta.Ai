@@ -5,26 +5,27 @@ class UserTransactionsService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  Future<Map<String, String>> fetchCategories() async {
-    Map<String, String> categories = {}; 
+Future<Map<String, String>> fetchCategories(String categoryType) async {
+  Map<String, String> categories = {};
 
-    try {
-      QuerySnapshot snapshot = await _firestore
-          .collection('categories')
-          .where('type', isEqualTo: 'transaction')
-          .get();
+  try {
+    QuerySnapshot snapshot = await _firestore
+        .collection('categories')
+        .where('type', isEqualTo: categoryType) 
+        .get();
 
-      for (var doc in snapshot.docs) {
-        categories[doc.id] = doc['name'] as String;
-      }
-
-      print(categories); 
-    } catch (e) {
-      print('Erro ao buscar categorias: $e');
+    for (var doc in snapshot.docs) {
+      categories[doc.id] = doc['name'] as String;
     }
 
-    return categories; 
+    print(categories);
+  } catch (e) {
+    print('Erro ao buscar categorias: $e');
   }
+
+  return categories;
+}
+
 
 
 

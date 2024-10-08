@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter_masked_text2/flutter_masked_text2.dart';
 import 'package:juntaai/despesa.dart';
 import 'package:juntaai/screens/home/home_screen.dart';
 import 'package:juntaai/service/user_expense_service.dart';
@@ -13,9 +13,7 @@ class ExpenseScreen extends StatefulWidget {
 }
 
 class _ExpenseScreenState extends State<ExpenseScreen> {
-  final UserTransactionsService _userTransactionService =
-      UserTransactionsService();
-
+  final UserTransactionsService _userTransactionService = UserTransactionsService();
   final UserExpenseService _userExpenseService = UserExpenseService();
 
   final _formSignInKey = GlobalKey<FormState>();
@@ -23,7 +21,13 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
   String? _selectedCategoryId;
   Map<String, String> _categories = {};
 
-  final TextEditingController _valueController = TextEditingController();
+  // Usando o MoneyMaskedTextController para o campo de valor
+  final MoneyMaskedTextController _valueController = MoneyMaskedTextController(
+    leftSymbol: 'R\$ ',
+    decimalSeparator: ',',
+    thousandSeparator: '.',
+  );
+  
   final TextEditingController _descriptionController = TextEditingController();
 
   final List<Despesa> _despesas = [];
@@ -34,13 +38,14 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
     _loadCategories();
   }
 
-  Future<void> _loadCategories() async {
-    Map<String, String> categories =
-        await _userTransactionService.fetchCategories();
-    setState(() {
-      _categories = categories;
-    });
-  }
+Future<void> _loadCategories() async {
+  Map<String, String> categories = await _userTransactionService.fetchCategories('expense');
+  
+  setState(() {
+    _categories = categories;
+  });
+}
+
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -56,74 +61,26 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
     }
   }
 
-  Future<void> _addCategory() async {
-    final TextEditingController _categoryController = TextEditingController();
-    await showDialog<String>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Adicionar Categoria'),
-          content: TextField(
-            controller: _categoryController,
-            decoration:
-                const InputDecoration(hintText: 'Nome da nova categoria'),
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Cancelar'),
-            ),
-            TextButton(
-              onPressed: () {
-                final newCategory = _categoryController.text.trim();
-                if (newCategory.isNotEmpty) {
-                  setState(() {
-                    _categories['new_category_id'] = newCategory;
-                    _selectedCategoryId = 'new_category_id';
-                  });
-                }
-                Navigator.of(context).pop();
-              },
-              child: const Text('Adicionar'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   void _saveData() async {
     if (_formSignInKey.currentState?.validate() ?? false) {
-      // Obtém o nome da categoria usando o ID selecionado
-      String categoryName =
-          _categories[_selectedCategoryId!] ?? 'Categoria Desconhecida';
+      String categoryName = _categories[_selectedCategoryId!] ?? 'Categoria Desconhecida';
 
       final despesa = Despesa(
         data: _selectedDate,
         categoria: _selectedCategoryId,
-        valor: double.tryParse(_valueController.text
-            .replaceAll('R\$', '')
-            .replaceAll('.', '')
-            .replaceAll(',', '.')),
-        descricao: _descriptionController.text.isEmpty
-            ? null
-            : _descriptionController.text, // Permite que a descrição seja nula
+        valor: _valueController.numberValue, 
+        descricao: _descriptionController.text.isEmpty ? null : _descriptionController.text,
       );
 
-      // Tenta adicionar a transação e captura o resultado
       bool success = await _userExpenseService.addTransactionExpense(
-        _selectedCategoryId!, // Passa o ID da categoria
-        categoryName, // Passa o nome da categoria
-        despesa.valor ?? 0.0, // Se valor for null, usa 0
-        despesa.descricao, // Pode ser nulo
+        _selectedCategoryId!,
+        categoryName,
+        despesa.valor ?? 0.0,
+        despesa.descricao,
         despesa.data!,
       );
 
-      // Exibe um modal com o resultado
       if (success) {
-        // Se a transação foi bem-sucedida, mostre um diálogo de sucesso
         showDialog(
           context: context,
           builder: (BuildContext context) {
@@ -148,19 +105,17 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
           },
         );
       } else {
-        // Se houve um erro, mostre um diálogo de erro
         showDialog(
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
               title: const Text('Erro'),
-              content: const Text(
-                  'Ocorreu um erro ao salvar a transação. Tente novamente.'),
+              content: const Text('Ocorreu um erro ao salvar a transação. Tente novamente.'),
               actions: <Widget>[
                 TextButton(
                   child: const Text('OK'),
                   onPressed: () {
-                    Navigator.of(context).pop(); // Fecha o diálogo
+                    Navigator.of(context).pop(); 
                   },
                 ),
               ],
@@ -173,9 +128,8 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
         _despesas.add(despesa);
       });
 
-      // Limpar o formulário
       _formSignInKey.currentState?.reset();
-      _valueController.clear();
+      _valueController.updateValue(0); 
       _descriptionController.clear();
       _selectedDate = null;
       _selectedCategoryId = null;
@@ -196,13 +150,13 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
         elevation: 0,
       ),
       body: Container(
-        color: Colors.red, // Cor de fundo da tela
+        color: Colors.red, 
         child: Column(
           children: [
             Expanded(
               child: Container(
                 decoration: const BoxDecoration(
-                  color: Colors.white, // Cor de fundo do conteúdo
+                  color: Colors.white, 
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(40.0),
                     topRight: Radius.circular(40.0),
@@ -213,15 +167,14 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
                   child: Form(
                     key: _formSignInKey,
                     child: Column(
-                      crossAxisAlignment:
-                          CrossAxisAlignment.start, // Alinhamento à esquerda
+                      crossAxisAlignment: CrossAxisAlignment.start, 
                       children: [
                         const SizedBox(height: 20.0),
                         Text(
                           'Data',
                           style: TextStyle(
                             color: Colors.black,
-                            fontSize: 24,
+                            fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -268,7 +221,7 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
                           'Categoria',
                           style: TextStyle(
                             color: Colors.black,
-                            fontSize: 24,
+                            fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -312,11 +265,6 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
                                 },
                               ),
                             ),
-                            IconButton(
-                              icon: const Icon(Icons.add, color: Colors.red),
-                              onPressed: _addCategory,
-                              tooltip: 'Adicionar Categoria',
-                            ),
                           ],
                         ),
                         const SizedBox(height: 20.0),
@@ -324,19 +272,14 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
                           'Valor',
                           style: TextStyle(
                             color: Colors.black,
-                            fontSize: 24,
+                            fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         const SizedBox(height: 20.0),
                         TextFormField(
                           controller: _valueController,
-                          keyboardType:
-                              TextInputType.numberWithOptions(decimal: true),
-                          inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly,
-                            CurrencyTextInputFormatter(),
-                          ],
+                          keyboardType: TextInputType.numberWithOptions(decimal: true),
                           decoration: InputDecoration(
                             hintText: 'Valor R\$',
                             border: OutlineInputBorder(
@@ -353,9 +296,7 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
                             ),
                           ),
                           validator: (value) {
-                            if (value == null ||
-                                value.isEmpty ||
-                                value == 'R\$ 0.00') {
+                            if (value == null || value.isEmpty || _valueController.numberValue == 0) {
                               return 'Entre com o valor';
                             }
                             return null;
@@ -366,7 +307,7 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
                           'Descrição',
                           style: TextStyle(
                             color: Colors.black,
-                            fontSize: 24,
+                            fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -390,7 +331,6 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 20.0),
                         const SizedBox(height: 40.0),
                         ElevatedButton(
                           onPressed: _saveData,
@@ -401,8 +341,7 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
                               borderRadius: BorderRadius.circular(10),
                             ),
                           ),
-                          child: const Text(
-                              style: TextStyle(color: Colors.white), 'Salvar'),
+                          child: const Text(style: TextStyle(color: Colors.white), 'Salvar'),
                         ),
                       ],
                     ),
@@ -414,28 +353,5 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
         ),
       ),
     );
-  }
-}
-
-class CurrencyTextInputFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-    TextEditingValue oldValue,
-    TextEditingValue newValue,
-  ) {
-    if (newValue.text.isEmpty) {
-      return newValue.copyWith(text: 'R\$ 0.00');
-    }
-
-    final number =
-        double.tryParse(newValue.text.replaceAll(RegExp('[^\d]'), ''));
-
-    if (number == null) {
-      return newValue;
-    }
-
-    final formattedValue =
-        'R\$ ${number.toStringAsFixed(2).replaceAll('.', ',')}';
-    return newValue.copyWith(text: formattedValue);
   }
 }

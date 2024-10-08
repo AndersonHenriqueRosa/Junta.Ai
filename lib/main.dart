@@ -29,7 +29,7 @@ class MyApp extends StatelessWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: [
-        const Locale('pt', 'BR'), // Configuração de português Brasil
+        const Locale('pt', 'BR'), 
       ],
       home: RouterScreen(),
     );

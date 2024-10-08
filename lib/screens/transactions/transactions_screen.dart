@@ -163,7 +163,7 @@ Future<void> _fetchTransactions() async {
                             expenseData: ExpenseData(
                               Icons.arrow_upward_rounded,
                               "Receita",
-                              totalIncome.toStringAsFixed(2),
+                              totalIncome,
                             ),
                             active: !showOnlyExpense || showOnlyIncome,
                           ),
@@ -183,7 +183,7 @@ Future<void> _fetchTransactions() async {
                             expenseData: ExpenseData(
                               Icons.arrow_downward_rounded,
                               "Despesa",
-                              totalExpense.toStringAsFixed(2),                            
+                              totalExpense,                            
                               ),
                             active: !showOnlyIncome || showOnlyExpense,
                           ),

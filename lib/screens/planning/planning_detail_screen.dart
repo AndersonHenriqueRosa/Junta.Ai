@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; 
+import 'package:intl/intl.dart';
+import 'package:flutter_masked_text2/flutter_masked_text2.dart';
+import 'package:juntaai/service/planning_service.dart'; // Importe o service
 
 class PlanningDetailScreen extends StatefulWidget {
+  final String planningId;
   final String planningName;
   final double savedAmount;
   final double totalGoal;
 
   const PlanningDetailScreen({
     Key? key,
+    required this.planningId,
     required this.planningName,
     required this.savedAmount,
     required this.totalGoal,
@@ -18,119 +22,261 @@ class PlanningDetailScreen extends StatefulWidget {
 }
 
 class _PlanningDetailScreenState extends State<PlanningDetailScreen> {
-  late double currentSaved;
-  final List<Map<String, dynamic>> revenues = []; 
+  final PlanningService _planningService = PlanningService();
+  final List<Map<String, dynamic>> transactions = [];
+
+  double currentSavedAmount = 0;
+
+  late MoneyMaskedTextController savedAmountController;
+  late MoneyMaskedTextController totalGoalController;
 
   @override
   void initState() {
     super.initState();
-    currentSaved = widget.savedAmount;
+
+    currentSavedAmount = widget.savedAmount;
+
+    savedAmountController = MoneyMaskedTextController(
+      initialValue: currentSavedAmount,
+      leftSymbol: 'R\$ ',
+      decimalSeparator: ',',
+      thousandSeparator: '.',
+    );
+
+    totalGoalController = MoneyMaskedTextController(
+      initialValue: widget.totalGoal,
+      leftSymbol: 'R\$ ',
+      decimalSeparator: ',',
+      thousandSeparator: '.',
+    );
+
+    _updateTransactions();
   }
 
-  // Função para adicionar receita com valor e data
-  void addRevenue(double amount) {
-    setState(() {
-      currentSaved += amount;
-      revenues.add({
-        'value': amount,
-        'date': DateTime.now(), // Armazena a data da receita
+  void _updateTransactions() async {
+    try {
+      List<Map<String, dynamic>> fetchedTransactions = await _planningService.fetchRevenues(widget.planningId);
+
+      double updatedSavedAmount = await _planningService.getUpdatedSavedAmount(widget.planningId);
+
+      setState(() {
+        transactions.clear();
+        transactions.addAll(fetchedTransactions);
+
+        currentSavedAmount = updatedSavedAmount;
+        savedAmountController.updateValue(currentSavedAmount);
       });
-    });
+    } catch (e) {
+      print('Erro ao buscar transações: $e');
+    }
+  }
+
+  void addTransaction(double amount) async {
+    try {
+      await _planningService.addRevenueToPlanning(widget.planningId, amount);
+      _updateTransactions();
+    } catch (e) {
+      print('Erro ao adicionar transação: $e');
+    }
+  }
+
+  void showAddAmountDialog({required bool isRevenue}) {
+    double newAmount = 0.0;
+    MoneyMaskedTextController amountController = MoneyMaskedTextController(
+      leftSymbol: 'R\$ ',
+      decimalSeparator: ',',
+      thousandSeparator: '.',
+    );
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(isRevenue ? 'Adicionar Receita' : 'Adicionar Despesa'),
+          content: TextField(
+            controller: amountController,
+            decoration: const InputDecoration(labelText: 'Valor'),
+            keyboardType: TextInputType.number,
+            onChanged: (value) {
+              newAmount = amountController.numberValue;
+            },
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                if (newAmount > 0) {
+                  addTransaction(isRevenue ? newAmount : -newAmount);
+                  Navigator.of(context).pop();
+                }
+              },
+              child: const Text('Adicionar'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancelar'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.planningName),
+        title: Text(
+          widget.planningName,
+          style: const TextStyle(color: Colors.white),
+        ),
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: Colors.white),
+        backgroundColor: Colors.orange,
+        elevation: 0,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Detalhes da Categoria: ${widget.planningName}',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 16),
-            Text(
-              'Total Objetivo: \$${widget.totalGoal.toStringAsFixed(2)}',
-              style: TextStyle(fontSize: 16),
-            ),
-            SizedBox(height: 8),
-            Text(
-              'Total Poupado: \$${currentSaved.toStringAsFixed(2)}',
-              style: TextStyle(fontSize: 16),
-            ),
-            SizedBox(height: 16),
-            LinearProgressIndicator(
-              value: currentSaved / widget.totalGoal,
-              minHeight: 10,
-            ),
-            SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    double newAmount = 0.0;
-                    return AlertDialog(
-                      title: Text('Adicionar Receita'),
-                      content: TextField(
-                        decoration: InputDecoration(labelText: 'Valor'),
-                        keyboardType: TextInputType.number,
-                        onChanged: (value) {
-                          newAmount = double.tryParse(value) ?? 0.0;
-                        },
-                      ),
-                      actions: [
-                        ElevatedButton(
-                          onPressed: () {
-                            if (newAmount > 0) {
-                              addRevenue(newAmount);
-                              Navigator.of(context).pop();
-                            }
-                          },
-                          child: Text('Adicionar'),
+      body: Stack(
+        children: [
+          Container(
+            height: MediaQuery.of(context).size.height,
+            color: Colors.orange,
+          ),
+          Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Card(
+                  color: Colors.white,
+                  elevation: 4.0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16.0),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Total Objetivo: ${totalGoalController.text}',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                        ElevatedButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          child: Text('Cancelar'),
+                        const SizedBox(height: 8.0),
+                        Text(
+                          'Total Poupado: ${savedAmountController.text}',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 16.0),
+                        LinearProgressIndicator(
+                          value: currentSavedAmount / widget.totalGoal,
+                          minHeight: 10,
+                          backgroundColor: Colors.grey[300],
+                          valueColor: const AlwaysStoppedAnimation<Color>(Colors.green),
+                        ),
+                        const SizedBox(height: 8.0),
+                        Text(
+                          '${((currentSavedAmount / widget.totalGoal) * 100).toStringAsFixed(1)}% Concluído',
                         ),
                       ],
-                    );
-                  },
-                );
-              },
-              child: Text('Adicionar Receita'),
-            ),
-            SizedBox(height: 24),
-            Text(
-              'Receitas:',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 8),
-            // Lista de receitas
-            Expanded(
-              child: revenues.isEmpty
-                  ? Center(child: Text('Nenhuma receita adicionada'))
-                  : ListView.builder(
-                      itemCount: revenues.length,
-                      itemBuilder: (context, index) {
-                        // Formatação da data
-                        String formattedDate = DateFormat('dd/MM/yyyy').format(revenues[index]['date']);
-                        return ListTile(
-                          title: Text('Valor: \$${revenues[index]['value'].toStringAsFixed(2)}'),
-                          subtitle: Text('Data: $formattedDate'),
-                        );
-                      },
                     ),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(40.0),
+                      topRight: Radius.circular(40.0),
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Movimentações',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 16.0),
+                        Expanded(
+                          child: transactions.isEmpty
+                              ? const Center(child: Text('Nenhuma receita ou despesa adicionada'))
+                              : ListView.builder(
+                                  itemCount: transactions.length,
+                                  itemBuilder: (context, index) {
+                                    String formattedDate =
+                                        DateFormat('dd/MM/yyyy').format(transactions[index]['date']);
+                                    String formattedValue = MoneyMaskedTextController(
+                                      initialValue: transactions[index]['value'].abs(),
+                                      leftSymbol: 'R\$ ',
+                                      decimalSeparator: ',',
+                                      thousandSeparator: '.',
+                                    ).text;
+
+                                    bool isExpense = transactions[index]['value'] < 0;
+                                    IconData arrowIcon = isExpense ? Icons.arrow_downward : Icons.arrow_upward;
+                                    Color valueColor = isExpense ? Colors.red : Colors.green;
+
+                                    return ListTile(
+                                      leading: Icon(
+                                        arrowIcon,
+                                        color: valueColor,
+                                      ),
+                                      title: Text(
+                                        '${isExpense ? '-' : ''}$formattedValue',
+                                        style: TextStyle(
+                                          color: valueColor,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      subtitle: Text('Data: $formattedDate'),
+                                    );
+                                  },
+                                ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          Positioned(
+            right: 16,
+            bottom: 16,
+            child: Column(
+              children: [
+                FloatingActionButton(
+                  onPressed: () {
+                    showAddAmountDialog(isRevenue: true);
+                  },
+                  child: const Icon(Icons.add, color: Colors.white),
+                  backgroundColor: Colors.green,
+                ),
+                const SizedBox(height: 10),
+                FloatingActionButton(
+                  onPressed: () {
+                    showAddAmountDialog(isRevenue: false);
+                  },
+                  child: const Icon(Icons.remove, color: Colors.white),
+                  backgroundColor: Colors.red,
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

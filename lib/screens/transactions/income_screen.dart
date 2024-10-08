@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter_masked_text2/flutter_masked_text2.dart';
 import 'package:juntaai/receita.dart';
 import 'package:juntaai/screens/home/home_screen.dart';
 import 'package:juntaai/service/user_income_service.dart';
@@ -13,9 +13,7 @@ class IncomeScreen extends StatefulWidget {
 }
 
 class _IncomeScreenState extends State<IncomeScreen> {
-  final UserTransactionsService _userTransactionService =
-      UserTransactionsService();
-
+  final UserTransactionsService _userTransactionService = UserTransactionsService();
   final UserIncomeService _userIncomeService = UserIncomeService();
 
   final _formSignInKey = GlobalKey<FormState>();
@@ -23,7 +21,11 @@ class _IncomeScreenState extends State<IncomeScreen> {
   String? _selectedCategoryId;
   Map<String, String> _categories = {};
 
-  final TextEditingController _valueController = TextEditingController();
+  final MoneyMaskedTextController _valueController = MoneyMaskedTextController(
+    leftSymbol: 'R\$ ',
+    decimalSeparator: ',',
+    thousandSeparator: '.',
+  );
   final TextEditingController _descriptionController = TextEditingController();
 
   final List<Receita> _receitas = [];
@@ -34,13 +36,14 @@ class _IncomeScreenState extends State<IncomeScreen> {
     _loadCategories();
   }
 
-  Future<void> _loadCategories() async {
-    Map<String, String> categories =
-        await _userTransactionService.fetchCategories();
-    setState(() {
-      _categories = categories;
-    });
-  }
+Future<void> _loadCategories() async {
+  Map<String, String> categories = await _userTransactionService.fetchCategories('income');
+  
+  setState(() {
+    _categories = categories;
+  });
+}
+
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -55,67 +58,22 @@ class _IncomeScreenState extends State<IncomeScreen> {
       });
     }
   }
-
-  Future<void> _addCategory() async {
-    final TextEditingController _categoryController = TextEditingController();
-    await showDialog<String>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Adicionar Categoria'),
-          content: TextField(
-            controller: _categoryController,
-            decoration:
-                const InputDecoration(hintText: 'Nome da nova categoria'),
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Cancelar'),
-            ),
-            TextButton(
-              onPressed: () {
-                final newCategory = _categoryController.text.trim();
-                if (newCategory.isNotEmpty) {
-                  setState(() {
-                    _categories['new_category_id'] = newCategory;
-                    _selectedCategoryId = 'new_category_id';
-                  });
-                }
-                Navigator.of(context).pop();
-              },
-              child: const Text('Adicionar'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   void _saveData() async {
     if (_formSignInKey.currentState?.validate() ?? false) {
-      String categoryName =
-          _categories[_selectedCategoryId!] ?? 'Categoria Desconhecida';
+      String categoryName = _categories[_selectedCategoryId!] ?? 'Categoria Desconhecida';
 
       final receita = Receita(
         data: _selectedDate,
         categoria: _selectedCategoryId,
-        valor: double.tryParse(_valueController.text
-            .replaceAll('R\$', '')
-            .replaceAll('.', '')
-            .replaceAll(',', '.')),
-        descricao: _descriptionController.text.isEmpty
-            ? null
-            : _descriptionController.text, 
+        valor: _valueController.numberValue, 
+        descricao: _descriptionController.text.isEmpty ? null : _descriptionController.text,
       );
 
       bool success = await _userIncomeService.addTransactionIncome(
-        _selectedCategoryId!, 
-        categoryName, 
-        receita.valor ?? 0.0, 
-        receita.descricao, 
+        _selectedCategoryId!,
+        categoryName,
+        receita.valor ?? 0.0,
+        receita.descricao,
         receita.data!,
       );
 
@@ -144,19 +102,17 @@ class _IncomeScreenState extends State<IncomeScreen> {
           },
         );
       } else {
-        // Se houve um erro, mostre um diálogo de erro
         showDialog(
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
               title: const Text('Erro'),
-              content: const Text(
-                  'Ocorreu um erro ao salvar a transação. Tente novamente.'),
+              content: const Text('Ocorreu um erro ao salvar a transação. Tente novamente.'),
               actions: <Widget>[
                 TextButton(
                   child: const Text('OK'),
                   onPressed: () {
-                    Navigator.of(context).pop(); // Fecha o diálogo
+                    Navigator.of(context).pop(); 
                   },
                 ),
               ],
@@ -169,9 +125,8 @@ class _IncomeScreenState extends State<IncomeScreen> {
         _receitas.add(receita);
       });
 
-      // Limpar o formulário
       _formSignInKey.currentState?.reset();
-      _valueController.clear();
+      _valueController.updateValue(0); 
       _descriptionController.clear();
       _selectedDate = null;
       _selectedCategoryId = null;
@@ -182,10 +137,11 @@ class _IncomeScreenState extends State<IncomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(onPressed: (){
-          Navigator.pop(context);
-        }, icon: Icon(Icons.arrow_back
-        )
+        leading: IconButton(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          icon: const Icon(Icons.arrow_back),
         ),
         title: const Text(
           "Receita",
@@ -197,13 +153,13 @@ class _IncomeScreenState extends State<IncomeScreen> {
         elevation: 0,
       ),
       body: Container(
-        color: Colors.green, // Cor de fundo da tela
+        color: Colors.green, 
         child: Column(
           children: [
             Expanded(
               child: Container(
                 decoration: const BoxDecoration(
-                  color: Colors.white, // Cor de fundo do conteúdo
+                  color: Colors.white, 
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(40.0),
                     topRight: Radius.circular(40.0),
@@ -214,15 +170,14 @@ class _IncomeScreenState extends State<IncomeScreen> {
                   child: Form(
                     key: _formSignInKey,
                     child: Column(
-                      crossAxisAlignment:
-                          CrossAxisAlignment.start, // Alinhamento à esquerda
+                      crossAxisAlignment: CrossAxisAlignment.start, 
                       children: [
                         const SizedBox(height: 20.0),
                         Text(
                           'Data',
                           style: TextStyle(
                             color: Colors.black,
-                            fontSize: 24,
+                            fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -269,7 +224,7 @@ class _IncomeScreenState extends State<IncomeScreen> {
                           'Categoria',
                           style: TextStyle(
                             color: Colors.black,
-                            fontSize: 24,
+                            fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -313,11 +268,6 @@ class _IncomeScreenState extends State<IncomeScreen> {
                                 },
                               ),
                             ),
-                            IconButton(
-                              icon: const Icon(Icons.add, color: Colors.green),
-                              onPressed: _addCategory,
-                              tooltip: 'Adicionar Categoria',
-                            ),
                           ],
                         ),
                         const SizedBox(height: 20.0),
@@ -325,19 +275,14 @@ class _IncomeScreenState extends State<IncomeScreen> {
                           'Valor',
                           style: TextStyle(
                             color: Colors.black,
-                            fontSize: 24,
+                            fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         const SizedBox(height: 20.0),
                         TextFormField(
                           controller: _valueController,
-                          keyboardType:
-                              TextInputType.numberWithOptions(decimal: true),
-                          inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly,
-                            CurrencyTextInputFormatter(),
-                          ],
+                          keyboardType: TextInputType.numberWithOptions(decimal: true),
                           decoration: InputDecoration(
                             hintText: 'Valor R\$',
                             border: OutlineInputBorder(
@@ -354,9 +299,7 @@ class _IncomeScreenState extends State<IncomeScreen> {
                             ),
                           ),
                           validator: (value) {
-                            if (value == null ||
-                                value.isEmpty ||
-                                value == 'R\$ 0.00') {
+                            if (value == null || value.isEmpty || _valueController.numberValue == 0) {
                               return 'Entre com o valor';
                             }
                             return null;
@@ -367,7 +310,7 @@ class _IncomeScreenState extends State<IncomeScreen> {
                           'Descrição',
                           style: TextStyle(
                             color: Colors.black,
-                            fontSize: 24,
+                            fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -391,7 +334,6 @@ class _IncomeScreenState extends State<IncomeScreen> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 20.0),
                         const SizedBox(height: 40.0),
                         ElevatedButton(
                           onPressed: _saveData,
@@ -402,8 +344,7 @@ class _IncomeScreenState extends State<IncomeScreen> {
                               borderRadius: BorderRadius.circular(10),
                             ),
                           ),
-                          child: const Text(
-                              style: TextStyle(color: Colors.white), 'Salvar'),
+                          child: const Text(style: TextStyle(color: Colors.white), 'Salvar'),
                         ),
                       ],
                     ),
@@ -415,28 +356,5 @@ class _IncomeScreenState extends State<IncomeScreen> {
         ),
       ),
     );
-  }
-}
-
-class CurrencyTextInputFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-    TextEditingValue oldValue,
-    TextEditingValue newValue,
-  ) {
-    if (newValue.text.isEmpty) {
-      return newValue.copyWith(text: 'R\$ 0.00');
-    }
-
-    final number =
-        double.tryParse(newValue.text.replaceAll(RegExp('[^\d]'), ''));
-
-    if (number == null) {
-      return newValue;
-    }
-
-    final formattedValue =
-        'R\$ ${number.toStringAsFixed(2).replaceAll('.', ',')}';
-    return newValue.copyWith(text: formattedValue);
   }
 }

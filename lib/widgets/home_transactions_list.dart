@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart'; // Importa a biblioteca para formatação de datas e moeda
 
 class HomeTransactionsList extends StatelessWidget {
   final String categoryName;
@@ -14,6 +15,19 @@ class HomeTransactionsList extends StatelessWidget {
     required this.type,
   }) : super(key: key);
 
+  // Função para formatar o valor como Real Brasileiro
+  String _formatCurrency(double value) {
+    final NumberFormat formatter = NumberFormat.simpleCurrency(locale: 'pt_BR');
+    return formatter.format(value);
+  }
+
+  // Função para formatar a data no padrão brasileiro DD/MM/AAAA
+  String _formatDate(String dateString) {
+    final DateTime parsedDate = DateTime.parse(dateString);
+    final DateFormat formatter = DateFormat('dd/MM/yyyy', 'pt_BR');
+    return formatter.format(parsedDate);
+  }
+
   IconData _getCategoryIcon(String categoryName) {
     switch (categoryName) {
       case 'Mercado':
@@ -23,9 +37,9 @@ class HomeTransactionsList extends StatelessWidget {
       case 'conta':
         return Icons.house;
       case 'entretenimento':
-        return Icons.movie; 
+        return Icons.movie;
       default:
-        return Icons.category; 
+        return Icons.category;
     }
   }
 
@@ -34,20 +48,20 @@ class HomeTransactionsList extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8.0),
       decoration: BoxDecoration(
-      color: const Color(0XFFf8fafb),
-      borderRadius: const BorderRadius.all(Radius.circular(12.0)),
+        color: const Color(0XFFf8fafb),
+        borderRadius: const BorderRadius.all(Radius.circular(12.0)),
       ),
       child: ListTile(
         leading: Container(
           padding: const EdgeInsets.all(8.0),
           decoration: const BoxDecoration(
-            color: Colors.orange, 
+            color: Colors.orange,
             borderRadius: BorderRadius.all(Radius.circular(6.0)),
           ),
           child: Icon(
             _getCategoryIcon(categoryName),
             color: Colors.white,
-          ), 
+          ),
         ),
         title: Text(
           categoryName,
@@ -60,18 +74,20 @@ class HomeTransactionsList extends StatelessWidget {
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Exibindo o valor formatado como Real Brasileiro
             Text(
-              "R\$ ${amount.toStringAsFixed(2)}", 
+              _formatCurrency(amount),
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: type == 'income'
-                        ? Colors.green 
-                        : Colors.red, 
+                        ? Colors.green
+                        : Colors.red,
                     fontSize: 13.0,
                     fontWeight: FontWeight.w700,
                   ),
             ),
+            // Exibindo a data formatada para o formato brasileiro
             Text(
-              date,
+              _formatDate(date),
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: const Color(0XFF3a4d62),
                     fontSize: 12.0,
@@ -79,11 +95,11 @@ class HomeTransactionsList extends StatelessWidget {
             ),
           ],
         ),
-        trailing: type == 'income' 
+        trailing: type == 'income'
             ? Icon(Icons.arrow_upward, color: Colors.green)
-            : type == 'expense' 
+            : type == 'expense'
                 ? Icon(Icons.arrow_downward, color: Colors.red)
-                : null, 
+                : null,
       ),
     );
   }

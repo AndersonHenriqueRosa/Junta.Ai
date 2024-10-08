@@ -129,20 +129,29 @@ Widget _buildIconMenu(BuildContext context, IconData icon, String label, Widget 
         ),
         const SizedBox(height: 8),
         Container(
-          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 12), 
+          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
           decoration: BoxDecoration(
-            color: Colors.white, 
-            borderRadius: BorderRadius.circular(12), 
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10),
           ),
-          child: Text(
-            label,
-            style: const TextStyle(fontSize: 14),
+          child: SizedBox(
+            width: 70, // Define uma largura fixa para o texto
+            child: FittedBox(
+              fit: BoxFit.scaleDown, // Ajusta o texto para caber no espaço
+              child: Text(
+                label,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 14), // O tamanho da fonte inicial
+              ),
+            ),
           ),
         ),
       ],
     ),
   );
 }
+
+
 
 
 
@@ -224,7 +233,7 @@ return Scaffold(
                       expenseData: ExpenseData(
                         Icons.arrow_upward_rounded,
                         "Receita",
-                        totalIncome.toStringAsFixed(2),
+                        totalIncome,
                       ),
                     ),
                   ),
@@ -234,7 +243,7 @@ return Scaffold(
                       expenseData: ExpenseData(
                         Icons.arrow_downward_rounded,
                         "Despesa",
-                        totalExpense.toStringAsFixed(2),
+                        totalExpense,
                       ),
                     ),
                   ),

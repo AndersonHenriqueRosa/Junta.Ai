@@ -30,32 +30,45 @@ class FirebaseService {
   }
 
   //-----------
-  Future<User?> signUp(String email, String password, String fullName,
-      String phoneNumber) async {
-    try {
-      UserCredential userCredential =
-          await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+Future<User?> signUp(String email, String password, String fullName) async {
+  try {
+    // Criação da conta de usuário no Firebase Authentication
+    UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
 
-      // Salvar informações do usuário no Firestore
-      await _firestore.collection('users').doc(userCredential.user!.uid).set({
-        'fullName': fullName,
-        'email': email,
-        'phoneNumber': phoneNumber,
-        'createdAt': FieldValue.serverTimestamp(),
-      });
+    User? user = userCredential.user;
 
-      return userCredential.user;
-    } on FirebaseAuthException catch (e) {
-      print('Erro ao criar conta: ${e.message}');
-      return null;
-    } catch (e) {
-      print('Erro inesperado: $e');
-      return null;
+    // Atualiza o displayName no perfil do usuário no Firebase Authentication
+    await user?.updateDisplayName(fullName);
+    await user?.reload(); // Atualiza o usuário para garantir que o nome seja aplicado
+
+    // Salvar as informações do usuário no Firestore
+    await _firestore.collection('users').doc(user!.uid).set({
+      'fullName': fullName,
+      'email': email,
+      'createdAt': FieldValue.serverTimestamp(),
+    });
+
+    return user;
+  } on FirebaseAuthException catch (e) {
+    if (e.code == 'email-already-in-use') {
+      throw 'O e-mail já está em uso por outra conta. Tente outro e-mail.';
+    } else if (e.code == 'invalid-email') {
+      throw 'O e-mail informado é inválido. Verifique o formato e tente novamente.';
+    } else if (e.code == 'weak-password') {
+      throw 'A senha é muito fraca. Tente uma senha mais forte.';
+    } else if (e.code == 'operation-not-allowed') {
+      throw 'O serviço de criação de contas está desativado. Entre em contato com o suporte.';
+    } else {
+      throw 'Erro ao criar conta: ${e.message}';
     }
+  } catch (e) {
+    throw 'Erro inesperado: $e';
   }
+}
+
 
 //-----------
 
@@ -112,41 +125,75 @@ class FirebaseService {
   User? getCurrentUser() {
     return _auth.currentUser;
   }
+//-------------------------
+
+Future<void> sendPasswordResetEmail(String email) async {
+  try {
+    print('Tentando enviar e-mail para: $email');
+    await _auth.sendPasswordResetEmail(email: email);
+    print('E-mail de redefinição enviado com sucesso.');
+  } on FirebaseAuthException catch (e) {
+    print('Erro de FirebaseAuthException: ${e.code} - ${e.message}');
+    if (e.code == 'invalid-email') {
+      throw 'O e-mail fornecido é inválido. Verifique o formato e tente novamente.';
+    } else if (e.code == 'user-not-found') {
+      throw 'Nenhuma conta foi encontrada com este e-mail. Verifique se o e-mail está correto.';
+    } else {
+      throw 'Erro ao enviar e-mail de recuperação: ${e.message}';
+    }
+  } catch (e) {
+    print('Erro inesperado: $e');
+    throw 'Erro inesperado: $e';
+  }
+}
+
+
+//--------------------------
+
 
   Future<void> _saveUserToFirestore(User user) async {
     final userDoc = await _firestore.collection('users').doc(user.uid).get();
 
-    // Verifica se o usuário já existe no Firestore
     if (!userDoc.exists) {
       await _firestore.collection('users').doc(user.uid).set({
         'fullName': user.displayName,
         'email': user.email,
-        'phoneNumber': null, // O Google não fornece o número de telefone
+        'phoneNumber': null,
         'createdAt': FieldValue.serverTimestamp(),
       });
     }
   }
 
-  Future<void> createDefaultCategories() async {
-    final QuerySnapshot categoriesSnapshot =
-        await _firestore.collection('categories').get();
-    if (categoriesSnapshot.docs.isEmpty) {
-      List<Map<String, dynamic>> defaultCategories = [
-        {'name': 'Mercado', 'type': 'transaction'},
-        {'name': 'Farmácia', 'type': 'transaction'},
-        {'name': 'Transporte', 'type': 'transaction'},
-        {'name': 'Aluguel', 'type': 'transaction'},
-        {'name': 'Entretenimento', 'type': 'transaction'},
-        {'name': 'Reserva de emergência', 'type': 'goal'},
-        {'name': 'Fazer uma viagem', 'type': 'goal'},
-      ];
+Future<void> createDefaultCategories() async {
+  final QuerySnapshot categoriesSnapshot =
+      await _firestore.collection('categories').get();
+  if (categoriesSnapshot.docs.isEmpty) {
+    List<Map<String, dynamic>> defaultCategories = [
+      // Receitas (income)
+      {'name': 'Salário', 'type': 'income'},
+      {'name': 'Freelance', 'type': 'income'},
+      {'name': 'Investimentos', 'type': 'income'},
+      {'name': 'Bônus', 'type': 'income'},
+      {'name': 'Aluguel de Imóveis', 'type': 'income'},
+      
+      // Despesas (expense)
+      {'name': 'Mercado', 'type': 'expense'},
+      {'name': 'Farmácia', 'type': 'expense'},
+      {'name': 'Transporte', 'type': 'expense'},
+      {'name': 'Aluguel', 'type': 'expense'},
+      {'name': 'Entretenimento', 'type': 'expense'},
+      {'name': 'Educação', 'type': 'expense'},
+      {'name': 'Restaurantes', 'type': 'expense'},
+      {'name': 'Viagem', 'type': 'expense'},
+    ];
 
-      for (var category in defaultCategories) {
-        await _firestore.collection('categories').add({
-          'name': category['name'],
-          'type': category['type'],
-        });
-      }
+    for (var category in defaultCategories) {
+      await _firestore.collection('categories').add({
+        'name': category['name'],
+        'type': category['type'],
+      });
     }
   }
+}
+
 }

@@ -19,9 +19,27 @@ class _SignInScreenState extends State<SignInScreen> {
   final _formSignInKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  bool rememberPassword = true;
   final FirebaseService _firebaseService = FirebaseService();
   String? _errorMessage;
+
+
+
+  void _showLoading() {
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    },
+  );
+}
+
+void _hideLoading() {
+  Navigator.of(context).pop();
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -66,8 +84,14 @@ class _SignInScreenState extends State<SignInScreen> {
                       TextFormField(
                         controller: _emailController,
                         validator: (value) {
+                          const String emailPattern =
+                              r'^[a-zA-Z0-9.a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9]+\.[a-zA-Z]+';
+                          final RegExp regex = RegExp(emailPattern);
+                          
                           if (value == null || value.isEmpty) {
                             return 'Entre com Email';
+                          } else if (!regex.hasMatch(value)) {
+                            return 'Entre com um Email válido';
                           }
                           return null;
                         },
@@ -91,6 +115,7 @@ class _SignInScreenState extends State<SignInScreen> {
                           ),
                         ),
                       ),
+
                       const SizedBox(height: 20.0),
                       TextFormField(
                         controller: _passwordController,
@@ -137,25 +162,6 @@ class _SignInScreenState extends State<SignInScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Row(
-                            children: [
-                              Checkbox(
-                                value: rememberPassword,
-                                onChanged: (bool? value) {
-                                  setState(() {
-                                    rememberPassword = value!;
-                                  });
-                                },
-                                activeColor: Colors.black,
-                              ),
-                              const Text(
-                                'Remember me',
-                                style: TextStyle(
-                                  color: Colors.black45,
-                                ),
-                              ),
-                            ],
-                          ),
                           GestureDetector(
                             onTap: () {
                               Navigator.push(
@@ -181,12 +187,16 @@ class _SignInScreenState extends State<SignInScreen> {
                         child: ElevatedButton(
                           onPressed: () async {
                             if (_formSignInKey.currentState!.validate()) {
+                              _showLoading(); // Exibe o modal de carregamento
+
                               try {
                                 User? user = await _firebaseService.signIn(
                                   _emailController.text,
                                   _passwordController.text,
                                 );
+
                                 if (user != null) {
+                                  _hideLoading(); // Esconde o modal antes de redirecionar
                                   Navigator.pushReplacement(
                                     context,
                                     MaterialPageRoute(
@@ -195,6 +205,7 @@ class _SignInScreenState extends State<SignInScreen> {
                                   );
                                 }
                               } catch (e) {
+                                _hideLoading(); // Esconde o modal em caso de erro
                                 setState(() {
                                   _errorMessage = e.toString();
                                 });
@@ -208,10 +219,13 @@ class _SignInScreenState extends State<SignInScreen> {
                       const SizedBox(height: 20.0),
                       ElevatedButton.icon(
                         onPressed: () async {
+                          _showLoading(); 
+
                           try {
-                            User? user =
-                                await _firebaseService.signInWithGoogle();
+                            User? user = await _firebaseService.signInWithGoogle();
+
                             if (user != null) {
+                              _hideLoading(); 
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
@@ -220,12 +234,14 @@ class _SignInScreenState extends State<SignInScreen> {
                               );
                             }
                           } catch (e) {
+                            _hideLoading(); 
                             setState(() {
                               _errorMessage = e.toString();
                               print(_errorMessage);
                             });
                           }
                         },
+
                         icon: Icon(Icons.login),
                         label: Text('Login com Google'),
                         // style: ElevatedButton.styleFrom(
