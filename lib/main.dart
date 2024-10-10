@@ -6,7 +6,6 @@ import 'package:juntaai/screens/welcome_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
@@ -31,6 +30,43 @@ class MyApp extends StatelessWidget {
       supportedLocales: [
         const Locale('pt', 'BR'), 
       ],
+      theme: ThemeData(
+        inputDecorationTheme: InputDecorationTheme(
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.orange, width: 2.0),
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          floatingLabelStyle: TextStyle(color: Colors.orange),
+        ),
+        
+        // elevatedButtonTheme: ElevatedButtonThemeData(
+        //   style: ElevatedButton.styleFrom(
+        //     foregroundColor: Colors.white, backgroundColor: Colors.orange, 
+        //     textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        //     padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32), 
+        //     shape: RoundedRectangleBorder(
+        //       borderRadius: BorderRadius.circular(12), 
+        //     ),
+        //   ),
+        // ),
+
+        textButtonTheme: TextButtonThemeData(
+          style: TextButton.styleFrom(
+            foregroundColor: Colors.orange, textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+        ),
+
+        outlinedButtonTheme: OutlinedButtonThemeData(
+          style: OutlinedButton.styleFrom(
+            foregroundColor: Colors.orange, side: const BorderSide(color: Colors.orange, width: 2), 
+            textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        ),
+      ),
       home: RouterScreen(),
     );
   }
@@ -45,7 +81,6 @@ class RouterScreen extends StatelessWidget {
         stream: FirebaseAuth.instance.userChanges(),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
-            print(snapshot.hasData);
             return const HomeScreen();
           } else {
             return const WelcomeScreen();

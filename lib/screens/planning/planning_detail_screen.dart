@@ -88,39 +88,111 @@ class _PlanningDetailScreenState extends State<PlanningDetailScreen> {
       thousandSeparator: '.',
     );
 
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(isRevenue ? 'Adicionar Receita' : 'Adicionar Despesa'),
-          content: TextField(
-            controller: amountController,
-            decoration: const InputDecoration(labelText: 'Valor'),
-            keyboardType: TextInputType.number,
-            onChanged: (value) {
-              newAmount = amountController.numberValue;
-            },
+ showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      final screenWidth = MediaQuery.of(context).size.width; 
+      final dialogWidth = screenWidth * 0.8; 
+      final buttonFontSize = screenWidth * 0.04; 
+      final buttonHeight = screenWidth * 0.12; 
+
+      return Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16.0),
+        ),
+        child: Container(
+          width: dialogWidth, 
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                isRevenue ? 'Adicionar Receita' : 'Adicionar Despesa',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: buttonFontSize, 
+                  color: Colors.orange,
+                ),
+              ),
+              const SizedBox(height: 20),
+              TextField(
+                controller: amountController,
+                decoration: InputDecoration(
+                  labelText: 'Valor',
+                  labelStyle: const TextStyle(
+                    fontSize: 16,
+                    color: Colors.black54,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade300, width: 1),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.orange, width: 2),
+                  ),
+                ),
+                keyboardType: TextInputType.number,
+                onChanged: (value) {
+                  newAmount = amountController.numberValue;
+                },
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: SizedBox(
+                      height: buttonHeight, 
+                      child: TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: Text(
+                          'Cancelar',
+                          style: TextStyle(
+                            color: Colors.red,
+                            fontSize: buttonFontSize, 
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10), 
+                  Expanded(
+                    child: SizedBox(
+                      height: buttonHeight, 
+                      child: ElevatedButton(
+                        onPressed: () {
+                          if (newAmount > 0) {
+                            addTransaction(isRevenue ? newAmount : -newAmount);
+                            Navigator.of(context).pop();
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.orange,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12.0),
+                          ),
+                        ),
+                        child: Text(
+                          'Adicionar',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: buttonFontSize, 
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-          actions: [
-            ElevatedButton(
-              onPressed: () {
-                if (newAmount > 0) {
-                  addTransaction(isRevenue ? newAmount : -newAmount);
-                  Navigator.of(context).pop();
-                }
-              },
-              child: const Text('Adicionar'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Cancelar'),
-            ),
-          ],
-        );
-      },
-    );
+        ),
+      );
+    },
+  );
   }
 
   @override
@@ -259,6 +331,7 @@ class _PlanningDetailScreenState extends State<PlanningDetailScreen> {
             child: Column(
               children: [
                 FloatingActionButton(
+                  heroTag: null,
                   onPressed: () {
                     showAddAmountDialog(isRevenue: true);
                   },
@@ -267,6 +340,7 @@ class _PlanningDetailScreenState extends State<PlanningDetailScreen> {
                 ),
                 const SizedBox(height: 10),
                 FloatingActionButton(
+                  heroTag: null,
                   onPressed: () {
                     showAddAmountDialog(isRevenue: false);
                   },

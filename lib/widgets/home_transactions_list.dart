@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // Importa a biblioteca para formatação de datas e moeda
+import 'package:intl/intl.dart'; 
 
 class HomeTransactionsList extends StatelessWidget {
   final String categoryName;
@@ -15,13 +15,11 @@ class HomeTransactionsList extends StatelessWidget {
     required this.type,
   }) : super(key: key);
 
-  // Função para formatar o valor como Real Brasileiro
   String _formatCurrency(double value) {
     final NumberFormat formatter = NumberFormat.simpleCurrency(locale: 'pt_BR');
     return formatter.format(value);
   }
 
-  // Função para formatar a data no padrão brasileiro DD/MM/AAAA
   String _formatDate(String dateString) {
     final DateTime parsedDate = DateTime.parse(dateString);
     final DateFormat formatter = DateFormat('dd/MM/yyyy', 'pt_BR');
@@ -74,7 +72,6 @@ class HomeTransactionsList extends StatelessWidget {
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Exibindo o valor formatado como Real Brasileiro
             Text(
               _formatCurrency(amount),
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
@@ -85,7 +82,6 @@ class HomeTransactionsList extends StatelessWidget {
                     fontWeight: FontWeight.w700,
                   ),
             ),
-            // Exibindo a data formatada para o formato brasileiro
             Text(
               _formatDate(date),
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(

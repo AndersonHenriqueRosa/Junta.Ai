@@ -17,11 +17,17 @@ class IncomeExpenseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Obter o tamanho da tela para ajustar dinamicamente os elementos
+    double screenWidth = MediaQuery.of(context).size.width;
+    double iconSize = screenWidth * 0.1; // Tamanho adaptativo do ícone
+    double labelFontSize = screenWidth * 0.04; // Tamanho adaptativo do texto
+    double amountFontSize = screenWidth * 0.04; // Tamanho adaptativo do valor
+
     // Formata o valor para o formato de moeda brasileira
     final String formattedAmount = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$').format(expenseData.amount);
 
     return Container(
-      padding: const EdgeInsets.all(10.0),
+      padding: EdgeInsets.all(screenWidth * 0.03), // Padding adaptativo
       decoration: BoxDecoration(
         boxShadow: const [
           BoxShadow(color: Colors.black12, offset: Offset.zero, spreadRadius: 3, blurRadius: 12)
@@ -36,27 +42,30 @@ class IncomeExpenseCard extends StatelessWidget {
         children: [
           Icon(
             expenseData.icon,
+            size: iconSize, // Ícone com tamanho adaptativo
             color: active ? Colors.white : Colors.grey, // Ícone muda para cinza se inativo
           ),
+          const SizedBox(width: 12), // Espaçamento entre o ícone e o texto
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   expenseData.label,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: active ? Colors.white : Colors.grey, // Texto muda para cinza se inativo
+                  style: TextStyle(
+                    fontSize: labelFontSize, // Tamanho adaptativo do texto
+                    color: active ? Colors.white : Colors.grey, // Texto muda para cinza se inativo
                   ),
                 ),
                 Padding(
                   padding: const EdgeInsets.only(top: 5.0),
                   child: Text(
                     formattedAmount, // Exibe o valor formatado como moeda brasileira
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: active ? Colors.white : Colors.grey, // Valor muda para cinza se inativo
-                          fontSize: 20,
-                          fontWeight: FontWeight.w600,
-                        ),
+                    style: TextStyle(
+                      fontSize: amountFontSize, // Tamanho adaptativo do valor
+                      color: active ? Colors.white : Colors.grey, // Valor muda para cinza se inativo
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ],
